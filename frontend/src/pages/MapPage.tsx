@@ -23,49 +23,57 @@ const LEGEND: [string, Priority][] = [
 ]
 
 export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
-  const now = useNow()
-  const [status, setStatus] = useState<string>('')
-  const [category, setCategory] = useState<string>('')
-  const [priority, setPriority] = useState<string>('')
-  const [activeOnly, setActiveOnly] = useState<boolean>(true)
-  const [selected, setSelected] = useState<string | null>(null)
-  const [hover, setHover] = useState<string | null>(null)
-  const rows = useRef<Map<string, HTMLLIElement>>(new Map())
-
   const staff = mode === 'staff'
+  const [category, setCategory] = useState('')
+  const [priority, setPriority] = useState('')
+  const [status, setStatus] = useState('')
+  const [assigned, setAssigned] = useState('')
+  const [responder, setResponder] = useState('')
+  const [range, setRange] = useState('')
+  const [activeOnly, setActiveOnly] = useState(true)
+
+  const [selected, setSelected] = useState<number | null>(null)
+  const [hover, setHover] = useState<number | null>(null)
+  const rows = useRef(new Map<number, HTMLElement>())
+  const now = useNow(30_000)
+
+  const from = range
+    ? new Date(Date.now() - Number(range) * 3600 * 1000).toISOString()
+    : undefined
 
   const markers = useQuery({
-    queryKey: ['map-markers'],
-    queryFn: () => api.getMapMarkers(),
-    refetchInterval: 15_000,
+    queryKey: [
+      'incidents-map',
+      { category, priority, status, responder, from, activeOnly },
+    ],
+    queryFn: () =>
+      api.get<MapMarker[]>('/incidents/map', {
+        category,
+        priority,
+        status,
+        responder,
+        from,
+        activeOnly,
+      }),
   })
 
   const responders = useQuery({
-    queryKey: ['responders-locations'],
-    queryFn: () => api.getResponders(),
+    queryKey: ['responders'],
+    queryFn: () => api.get<Responder[]>('/responders'),
     enabled: staff,
-    refetchInterval: 15_000,
+    refetchInterval: 20_000,
   })
 
-  const list = useMemo(() => {
-    if (!markers.data) return []
-    let arr = markers.data
-    if (activeOnly) {
-      arr = arr.filter((m) => m.status === 'open' || m.status === 'assigned')
-    }
-    if (status) {
-      arr = arr.filter((m) => m.status === status)
-    }
-    if (category) {
-      arr = arr.filter((m) => m.category === category)
-    }
-    if (priority) {
-      arr = arr.filter((m) => m.priority === priority)
-    }
-    return sortByUrgency(arr, now)
-  }, [markers.data, activeOnly, status, category, priority, now])
-
-  const shown = list
+  const sorted = useMemo(
+    () => sortByUrgency(markers.data ?? []),
+    [markers.data]
+  )
+  const shown = useMemo(() => {
+    let list = sorted
+    if (assigned === 'yes') list = list.filter((m) => m.assigned)
+    if (assigned === 'no') list = list.filter((m) => !m.assigned)
+    return list
+  }, [sorted, assigned])
 
   const critical = useMemo(
     () => shown.filter((m) => m.priority === 'CRITICAL').length,
@@ -73,77 +81,113 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
   )
 
   useEffect(() => {
-    if (!selected) return
-    const el = rows.current.get(selected)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    if (selected != null) {
+      const el = rows.current.get(selected)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [selected])
 
+  useEffect(() => {
+    if (selected != null && !shown.some((m) => m.id === selected)) {
+      setSelected(null)
+    }
+  }, [selected, shown])
+
   return (
-    <main className="container-shell space-y-4">
+    <main className="mx-auto max-w-[96rem]">
       <PageHeader
-        title={staff ? 'Operations Map' : 'Field Map'}
-        description={
+        title="Live emergency map"
+        subtitle={
           staff
-            ? 'Live view of incidents and active responders'
-            : 'Live map of incidents requiring field action'
-        }
-        actions={
-          <div className="flex items-center gap-2">
-            <Link
-              to="/incidents"
-              className="px-3 py-1.5 text-xs font-semibold text-ink-2 hover:text-ink border border-line rounded-ctl"
-            >
-              Incident list
-            </Link>
-          </div>
+            ? 'Incidents by urgency. Blue-dot markers indicate responder locations.'
+            : 'Incidents sorted by priority and age.'
         }
       />
 
-      <Card className="p-3">
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-ink-2">Status:</span>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">All statuses</option>
-              <option value="open">Open</option>
-              <option value="assigned">Assigned</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
+      <Card className="mb-4 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            aria-label="Emergency type"
+            className="h-9 w-auto text-[13px]"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">All types</option>
+            <option value="MEDICAL">Medical</option>
+            <option value="FIRE">Fire</option>
+            <option value="FLOOD">Flood</option>
+            <option value="HAZMAT">Hazmat</option>
+            <option value="RESCUE">Rescue</option>
+            <option value="OTHER">Other</option>
+          </Select>
+          <Select
+            aria-label="Priority"
+            className="h-9 w-auto text-[13px]"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value="">All priorities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </Select>
+          <Select
+            aria-label="Status"
+            className="h-9 w-auto text-[13px]"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">All statuses</option>
+            <option value="OPEN">Open</option>
+            <option value="ASSIGNED">Assigned</option>
+            <option value="IN_PROGRESS">In progress</option>
+            <option value="RESOLVED">Resolved</option>
+          </Select>
+          {staff && (
+            <Select
+              aria-label="Assignment"
+              className="h-9 w-auto text-[13px]"
+              value={assigned}
+              onChange={(e) => setAssigned(e.target.value)}
+            >
+              <option value="">All assignments</option>
+              <option value="yes">Assigned</option>
+              <option value="no">Unassigned</option>
             </Select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-ink-2">Category:</span>
-            <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-              <option value="">All categories</option>
-              <option value="MEDICAL">Medical</option>
-              <option value="FIRE">Fire</option>
-              <option value="FLOOD">Flood</option>
-              <option value="RESCUE">Rescue</option>
-              <option value="OTHER">Other</option>
+          )}
+          {staff && (
+            <Select
+              aria-label="Responder"
+              className="h-9 w-auto text-[13px]"
+              value={responder}
+              onChange={(e) => setResponder(e.target.value)}
+            >
+              <option value="">All responders</option>
+              {(responders.data ?? []).map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
             </Select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-ink-2">Priority:</span>
-            <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
-              <option value="">All priorities</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </Select>
-          </div>
-
+          )}
+          <Select
+            aria-label="Time range"
+            className="h-9 w-auto text-[13px]"
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+          >
+            <option value="">All time</option>
+            <option value="1">Past hour</option>
+            <option value="6">Past 6 hours</option>
+            <option value="24">Past 24 hours</option>
+          </Select>
           <label className="ml-1 flex h-9 items-center gap-2 text-[13px] text-ink-2">
             <input
               type="checkbox"
               className="h-4 w-4 rounded accent-primary"
               checked={activeOnly}
               onChange={(e) => setActiveOnly(e.target.checked)}
-              disabled={!!status}
             />
             Active only
           </label>
@@ -174,7 +218,10 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
                 overlay={
                   <>
                     <p className="pointer-events-auto absolute left-3 top-3 rounded-ctl bg-surface/95 px-2.5 py-1.5 text-xs font-medium text-ink-2 shadow-raised backdrop-blur">
-                      <span className="num text-sm text-ink">{shown.length}</span> shown
+                      <span className="num text-sm text-ink">
+                        {shown.length}
+                      </span>{' '}
+                      shown
                       {critical > 0 && (
                         <>
                           {' '}
@@ -191,7 +238,10 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
                       aria-label="Map legend"
                     >
                       {LEGEND.map(([l, p]) => (
-                        <li key={l} className="inline-flex items-center gap-1.5">
+                        <li
+                          key={l}
+                          className="inline-flex items-center gap-1.5"
+                        >
                           <span style={{ color: PRIORITY_COLOR[p] }}>
                             <PriorityBars priority={p} />
                           </span>
@@ -261,7 +311,13 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
                         className="min-w-0 flex-1 px-3 py-2.5 text-left"
                       >
                         <span className="flex items-center gap-2">
-                          <span style={{ color: m.priority ? PRIORITY_COLOR[m.priority] : '#64748B' }}>
+                          <span
+                            style={{
+                              color: m.priority
+                                ? PRIORITY_COLOR[m.priority]
+                                : '#64748B',
+                            }}
+                          >
                             <PriorityBars priority={m.priority} />
                           </span>
                           <span className="num text-sm text-ink">
@@ -275,7 +331,8 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
                           {m.description}
                         </span>
                         <span className="mt-0.5 block text-2xs text-muted">
-                          {STATUS_LABEL[m.status]} · {m.assigned ? 'assigned' : 'unassigned'} ·{' '}
+                          {STATUS_LABEL[m.status]} ·{' '}
+                          {m.assigned ? 'assigned' : 'unassigned'} ·{' '}
                           {timeAgo(m.createdAt, now)}
                         </span>
                       </button>
