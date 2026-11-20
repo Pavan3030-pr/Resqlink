@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: light; scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-background font-sans text-ink antialiased; }
+  /* One focus language everywhere: a 2px blue ring offset from the control. White on the dark rail. */
+  :focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
+  .on-rail :focus-visible { outline-color: #fff; }
+  ::selection { background: #CFDDFB; }
+}
+
+@layer components {
+  /* Figures (counts, timers, incident numbers) use the condensed face with tabular digits. */
+  .num { @apply font-figure font-semibold tabular-nums; letter-spacing: -0.005em; }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .rl-skeleton {
+    background: linear-gradient(90deg, #E6EBF2 25%, #F2F5F9 40%, #E6EBF2 60%);
+    background-size: 300% 100%;
+    animation: rl-shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+/* ---- Motion: every animation answers a state change, none is decorative. All are disabled for reduced motion. ---- */
+@keyframes rl-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes rl-ping { 0% { transform: scale(1); opacity: .55; } 80%, 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes rl-flash { from { background-color: rgba(30, 79, 214, .14); } to { background-color: transparent; } }
+@keyframes rl-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes rl-rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes rl-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rl-marker-ring { 0% { transform: scale(.7); opacity: .6; } 100% { transform: scale(2.1); opacity: 0; } }
+@keyframes rl-attn { 0%, 100% { box-shadow: 0 0 0 0 rgba(217, 45, 32, .0); } 50% { box-shadow: 0 0 0 4px rgba(217, 45, 32, .16); } }
+
+.rl-ping { animation: rl-ping 1.9s cubic-bezier(0, 0, .2, 1) infinite; }
+.rl-flash { animation: rl-flash 1.6s ease-out 1; }
+.rl-pop { animation: rl-pop .28s ease-out 1; }
+.rl-rise { animation: rl-rise .22s ease-out 1; }
+.rl-fade { animation: rl-fade .18s ease-out 1; }
+.rl-attn { animation: rl-attn 2.4s ease-in-out infinite; }
+
+/* ---- Map ---- */
+.leaflet-container { font-family: inherit; background: #E5E9EC; }
+.rl-marker { background: transparent; border: none; }
+.rl-marker .rl-ring { position: absolute; inset: 0; border-radius: 9999px; animation: rl-marker-ring 1.8s ease-out infinite; pointer-events: none; }
+.rl-popup .leaflet-popup-content-wrapper { border-radius: 10px; padding: 0; box-shadow: 0 16px 48px -8px rgba(11,22,38,.32), 0 2px 6px rgba(11,22,38,.10); }
+.rl-popup .leaflet-popup-content { margin: 0; width: 248px !important; }
+.rl-popup .leaflet-popup-tip { box-shadow: 0 2px 6px rgba(11,22,38,.12); }
+.rl-popup a.leaflet-popup-close-button { top: 6px; right: 6px; color: #4F5D75; }
+.leaflet-control-zoom { border: 1px solid #D6DDE7 !important; border-radius: 8px !important; overflow: hidden; box-shadow: 0 1px 2px rgba(11,22,38,.08) !important; }
+.leaflet-control-zoom a { color: #0B1626 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .rl-skeleton { background: #E6EBF2; }
+}

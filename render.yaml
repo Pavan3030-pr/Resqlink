@@ -1,0 +1,35 @@
+# Render Blueprint: backend (Docker) + managed PostgreSQL (PostGIS available).
+# Secrets are marked sync:false and must be entered in the Render dashboard; nothing secret is committed.
+databases:
+  - name: resqlink-db
+    plan: basic-256mb      # paid plan recommended: free databases expire and have no backups
+    databaseName: resqlink
+    user: resqlink
+
+services:
+  - type: web
+    name: resqlink-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /actuator/health/readiness
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL            # postgres://… form is converted automatically
+        fromDatabase: { name: resqlink-db, property: connectionString }
+      - { key: JWT_SECRET, generateValue: true }
+      - { key: CORS_ALLOWED_ORIGINS, sync: false }      # your Vercel URL, e.g. https://resqlink.vercel.app
+      - { key: STORAGE_TYPE, value: s3 }
+      - { key: S3_ENDPOINT, sync: false }               # e.g. https://<account>.r2.cloudflarestorage.com
+      - { key: S3_BUCKET, sync: false }
+      - { key: S3_REGION, value: auto }
+      - { key: S3_ACCESS_KEY, sync: false }
+      - { key: S3_SECRET_KEY, sync: false }
+      - { key: NEXCONN_APP_KEY, sync: false }
+      - { key: NEXCONN_APP_SECRET, sync: false }
+      - { key: NEXCONN_API_DOMAIN, sync: false }
+      - { key: GEMINI_API_KEY, sync: false }
+      - { key: SEED_DEMO_DATA, value: "true" }
+      - { key: DEMO_MODE, value: "true" }
+      - { key: DEMO_PASSWORD, sync: false }

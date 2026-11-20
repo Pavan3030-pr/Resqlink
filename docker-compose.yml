@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: resqlink
+      POSTGRES_USER: resqlink
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-resqlink}
+    ports: ["5432:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resqlink -d resqlink"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/resqlink
+      DATABASE_USERNAME: resqlink
+      DATABASE_PASSWORD: ${DB_PASSWORD:-resqlink}
+      UPLOAD_DIR: /app/uploads
+    ports: ["8080:8080"]
+    volumes: [uploads:/app/uploads]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    depends_on: [backend]
+    ports: ["5173:80"]
+
+volumes:
+  dbdata:
+  uploads:
