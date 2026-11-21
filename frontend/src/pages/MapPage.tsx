@@ -165,8 +165,8 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
             >
               <option value="">All responders</option>
               {(responders.data ?? []).map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
+                <option key={r.userId} value={r.userId}>
+                  {r.fullName}
                 </option>
               ))}
             </Select>
@@ -213,7 +213,7 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
                 markers={shown}
                 responders={staff ? responders.data : []}
                 selectedId={selected}
-                hoveredId={hover}
+                hoverId={hover}
                 onSelect={setSelected}
                 overlay={
                   <>
