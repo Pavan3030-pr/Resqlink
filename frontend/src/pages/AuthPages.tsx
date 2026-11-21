@@ -22,21 +22,21 @@ const TRUST = [
 function Shell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <aside className="on-rail hidden w-[26rem] shrink-0 flex-col justify-between bg-rail p-10 text-rail-text lg:flex xl:w-[30rem]">
-        <Link to="/" className="flex items-center gap-2.5 text-rail-ink"><BrandMark className="h-9 w-9" /><span className="text-lg font-semibold tracking-tight">ResQLink</span></Link>
+      <aside className="hidden w-[26rem] shrink-0 flex-col justify-between border-r border-line bg-surface p-10 text-muted lg:flex xl:w-[30rem]">
+        <Link to="/" className="flex items-center gap-2.5 text-rail-ink"><BrandMark className="h-9 w-9" /><span className="font-display text-xl font-semibold">ResQLink</span></Link>
         <div>
-          <p className="text-3xl font-semibold leading-tight tracking-tight text-rail-ink">Calm, accountable emergency coordination.</p>
+          <p className="font-display text-[34px] font-semibold leading-[1.1] text-ink">Calm, accountable emergency coordination.</p>
           <ul className="mt-8 space-y-5 text-sm leading-relaxed">
             {TRUST.map(([h, t]) => <li key={h} className="border-l-2 border-primary-edge pl-4"><strong className="block text-rail-ink">{h}</strong>{t}</li>)}
           </ul>
         </div>
-        <p className="text-xs leading-relaxed text-rail-text/80">Prototype for demonstration. Not a replacement for official emergency services.</p>
+        <p className="text-xs leading-relaxed text-muted">Prototype for demonstration. Not a replacement for official emergency services.</p>
       </aside>
       <main className="flex flex-1 items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
-          <Link to="/" className="mb-6 flex items-center gap-2.5 lg:hidden"><BrandMark className="h-9 w-9" /><span className="text-xl font-semibold tracking-tight">ResQLink</span></Link>
+          <Link to="/" className="mb-6 flex items-center gap-2.5 lg:hidden"><BrandMark className="h-9 w-9" /><span className="font-display text-xl font-semibold">ResQLink</span></Link>
           <div className="rounded-panel border border-line bg-surface p-6 shadow-raised sm:p-8">
-            <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+            <h1 className="font-display text-2xl font-semibold text-ink">{title}</h1>
             <p className="mb-6 mt-1 text-sm text-muted">{subtitle}</p>
             {children}
           </div>

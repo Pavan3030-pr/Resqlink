@@ -59,10 +59,10 @@ export function ErrorState({ title = 'Could not load this', error, onRetry }: { 
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight text-ink">{title}</h1>
-        {subtitle && <p className="mt-1 text-[13px] text-muted">{subtitle}</p>}
+        <h1 className="font-display text-[26px] font-semibold leading-8 text-ink">{title}</h1>
+        {subtitle && <p className="mt-1.5 text-sm text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
@@ -73,7 +73,7 @@ export function Stat({ label, value, tone = 'default', hint }: { label: string; 
   return (
     <div className="rounded-panel border border-line bg-surface p-4 shadow-card">
       <p className="text-xs font-medium text-muted">{label}</p>
-      <p className={cn('num mt-1 text-[28px] leading-8', tone === 'critical' && 'text-critical', tone === 'primary' && 'text-primary')}>{value}</p>
+      <p className={cn('num mt-1.5 text-[30px] leading-9', tone === 'critical' && 'text-critical', tone === 'primary' && 'text-primary')}>{value}</p>
       {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
     </div>
   )

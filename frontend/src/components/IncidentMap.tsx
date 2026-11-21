@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils'
 
 const DEFAULT_CENTER: [number, number] = [17.385, 78.4867] // Hyderabad, used only when there is nothing to show
 const NEUTRAL = '#64748B'
-const INK = '#0B1626'
-const BLUE = '#1E4FD6'
+const INK = '#0F1B2D'
+const BLUE = '#0B5D5E'
 
 // Glyphs are drawn white on the priority colour, so category is readable at a glance without colour.
 const GLYPH: Record<Category, string> = {

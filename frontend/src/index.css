@@ -7,16 +7,18 @@
   body { @apply bg-background font-sans text-ink antialiased; }
   /* One focus language everywhere: a 2px blue ring offset from the control. White on the dark rail. */
   :focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
-  .on-rail :focus-visible { outline-color: #fff; }
-  ::selection { background: #CFDDFB; }
+  ::selection { background: #CBE6E6; }
+  h1, h2 { text-wrap: balance; }
+  body { font-feature-settings: 'cv11', 'ss01'; }
 }
 
 @layer components {
   /* Figures (counts, timers, incident numbers) use the condensed face with tabular digits. */
-  .num { @apply font-figure font-semibold tabular-nums; letter-spacing: -0.005em; }
+  .num { @apply font-figure font-semibold tabular-nums; letter-spacing: -0.01em; }
+  .font-display { letter-spacing: -0.025em; font-optical-sizing: auto; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
   .rl-skeleton {
-    background: linear-gradient(90deg, #E6EBF2 25%, #F2F5F9 40%, #E6EBF2 60%);
+    background: linear-gradient(90deg, #E9EDF3 25%, #F5F7FA 40%, #E9EDF3 60%);
     background-size: 300% 100%;
     animation: rl-shimmer 1.5s ease-in-out infinite;
   }
@@ -25,7 +27,7 @@
 /* ---- Motion: every animation answers a state change, none is decorative. All are disabled for reduced motion. ---- */
 @keyframes rl-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @keyframes rl-ping { 0% { transform: scale(1); opacity: .55; } 80%, 100% { transform: scale(2.6); opacity: 0; } }
-@keyframes rl-flash { from { background-color: rgba(30, 79, 214, .14); } to { background-color: transparent; } }
+@keyframes rl-flash { from { background-color: rgba(11, 93, 94, .12); } to { background-color: transparent; } }
 @keyframes rl-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
 @keyframes rl-rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes rl-fade { from { opacity: 0; } to { opacity: 1; } }

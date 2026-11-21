@@ -4,7 +4,7 @@
   "description": "Emergency reporting and real-time response coordination",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#E9EDF3",
-  "theme_color": "#0E1828",
+  "background_color": "#F3F5F8",
+  "theme_color": "#0B5D5E",
   "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

@@ -93,20 +93,20 @@ export function Layout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[3000] focus:rounded-ctl focus:bg-primary focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
 
       {/* Operations rail */}
-      <aside className="on-rail sticky top-0 hidden h-screen w-[14.5rem] shrink-0 flex-col bg-rail text-rail-text md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-rail-line bg-rail text-rail-text md:flex">
         <div className="flex h-14 items-center gap-2.5 border-b border-rail-line px-4">
           <BrandMark />
-          <span className="text-[15px] font-semibold tracking-tight text-rail-ink">ResQLink</span>
+          <span className="font-display text-lg font-semibold text-rail-ink">ResQLink</span>
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-2.5 py-3" aria-label="Main">
           {items.map((n) => {
             const count = badgeFor(n)
             return (
               <NavLink key={n.to + n.label} to={n.to} end={n.end}
-                className={({ isActive }) => cn('relative flex h-9 items-center gap-3 rounded-ctl px-3 text-[13px] font-medium transition-colors', isActive ? 'bg-rail-2 text-rail-ink' : 'hover:bg-rail-2/60 hover:text-rail-ink')}>
+                className={({ isActive }) => cn('relative flex h-10 items-center gap-3 rounded-ctl px-3 text-sm font-medium transition-colors', isActive ? 'bg-primary-soft text-primary' : 'hover:bg-rail-2 hover:text-rail-ink')}>
                 {({ isActive }: { isActive: boolean }) => (
                   <>
-                    {isActive && <span className="absolute -left-2.5 top-1.5 h-6 w-[3px] rounded-r-full bg-primary-edge" aria-hidden />}
+                    {isActive && <span className="absolute -left-2.5 top-2 h-6 w-[3px] rounded-r-full bg-primary" aria-hidden />}
                     <n.icon className="h-4 w-4 shrink-0" />
                     <span className="flex-1 truncate">{n.label}</span>
                     {count > 0 && <span className="num rounded-full bg-critical-solid px-1.5 text-xs leading-5 text-white" aria-label={`${count} critical`}>{count}</span>}

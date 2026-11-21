@@ -24,7 +24,7 @@ const ROLES = [
 function QueuePreview() {
   return (
     <figure aria-label="Preview of the dispatcher queue with sample data" className="select-none">
-      <div className="overflow-hidden rounded-panel border border-white/10 bg-surface shadow-overlay">
+      <div className="overflow-hidden rounded-panel border border-line bg-surface shadow-hero">
         <div className="flex items-center gap-2.5 border-b border-line px-4 py-3">
           <span className="text-sm font-semibold text-ink">Needs attention</span>
           <span className="num rounded-full bg-ink px-2 text-xs leading-5 text-white">3</span>
@@ -55,60 +55,70 @@ function QueuePreview() {
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-rail text-rail-ink">
-        <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-2.5"><BrandMark className="h-9 w-9" /><span className="text-lg font-semibold tracking-tight">ResQLink</span></div>
-          <div className="on-rail flex items-center gap-2">
-            <Link to="/login" className="inline-flex h-10 items-center rounded-ctl px-4 text-sm font-medium text-rail-ink hover:bg-rail-2">Sign in</Link>
-            <Link to="/register" className={linkButtonClass()}>Get started</Link>
-          </div>
-        </header>
-        <section className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pb-20 pt-10 lg:grid-cols-[1.05fr_1fr] [&>*]:min-w-0">
-          <div className="on-rail">
-            <p className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-rail-text"><span className="h-px w-8 bg-rail-text/60" aria-hidden />Emergency response &amp; real-time coordination</p>
-            <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight md:text-5xl">From emergency report to coordinated response.</h1>
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-rail-text">One incident lifecycle for citizens, dispatchers and responders: AI-assisted triage, a live map, and a dedicated Nexconn channel for every incident.</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/register" className={linkButtonClass({ size: 'lg' })}>Report or respond</Link>
-              <Link to="/login" className={cn(linkButtonClass({ size: 'lg', variant: 'ghost' }), 'border border-rail-line text-rail-ink hover:bg-rail-2')}>Dispatcher sign in</Link>
-            </div>
-          </div>
-          <QueuePreview />
-        </section>
-      </div>
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <div className="flex items-center gap-2.5"><BrandMark className="h-9 w-9" /><span className="font-display text-xl font-semibold text-ink">ResQLink</span></div>
+        <div className="flex items-center gap-2">
+          <Link to="/login" className="inline-flex h-10 items-center rounded-ctl px-4 text-sm font-medium text-ink-2 hover:bg-surface-3">Sign in</Link>
+          <Link to="/register" className={linkButtonClass()}>Get started</Link>
+        </div>
+      </header>
 
-      <main className="mx-auto max-w-6xl px-6 pb-16 pt-16">
+      <section className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 px-6 pb-20 pt-10 lg:grid-cols-[1.02fr_1fr] lg:pt-16 [&>*]:min-w-0">
+        <div>
+          <h1 className="font-display text-[40px] font-semibold leading-[1.04] text-ink sm:text-[52px] lg:text-[62px]">From emergency report to coordinated response.</h1>
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">Citizens, dispatchers and responders work from one incident record: AI-assisted triage, a live map, and a dedicated Nexconn channel for every incident.</p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Link to="/register" className={linkButtonClass({ size: 'lg' })}>Report or respond</Link>
+            <Link to="/login" className={linkButtonClass({ size: 'lg', variant: 'secondary' })}>Dispatcher sign in</Link>
+          </div>
+          <div className="mt-12 max-w-lg border-t border-line pt-6">
+            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium text-ink">
+              {[['#D92D20', 'Critical'], ['#E8590C', 'High'], ['#C27C05', 'Medium'], ['#1B9A52', 'Low']].map(([c, n]) => (
+                <li key={n} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} aria-hidden />{n}</li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm leading-relaxed text-muted">Every incident carries a priority and a running wait timer against its target, so the next action is never a guess.</p>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="absolute -inset-4 -z-0 rounded-[28px] bg-primary-soft/70" aria-hidden />
+          <div className="relative"><QueuePreview /></div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
         <section aria-labelledby="how">
-          <h2 id="how" className="text-2xl font-semibold tracking-tight">How it works</h2>
-          <ol className="mt-6 grid overflow-hidden rounded-panel border border-line bg-surface shadow-card md:grid-cols-4">
+          <h2 id="how" className="font-display text-3xl font-semibold text-ink">How it works</h2>
+          <ol className="mt-8 grid border-t border-ink md:grid-cols-4">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="border-b border-line p-5 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
-                <div className="flex items-center justify-between"><span className="num text-3xl text-primary/80" aria-hidden>{String(i + 1).padStart(2, '0')}</span><s.icon className="h-5 w-5 text-muted" aria-hidden /></div>
-                <h3 className="mt-3 font-semibold">{s.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">{s.text}</p>
+              <li key={s.title} className="border-b border-line py-6 md:border-b-0 md:border-r md:px-6 md:first:pl-0 md:last:border-r-0">
+                <div className="flex items-center gap-3"><span className="num flex h-7 w-7 items-center justify-center rounded-full bg-ink text-xs text-white" aria-hidden>{i + 1}</span><s.icon className="h-5 w-5 text-primary" aria-hidden /></div>
+                <h3 className="mt-4 text-lg font-semibold text-ink">{s.title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.text}</p>
               </li>
             ))}
           </ol>
         </section>
 
-        <section className="mt-16" aria-labelledby="roles">
-          <h2 id="roles" className="text-2xl font-semibold tracking-tight">Built for every role</h2>
-          <div className="mt-6 grid overflow-hidden rounded-panel border border-line bg-surface shadow-card sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-20" aria-labelledby="roles">
+          <h2 id="roles" className="font-display text-3xl font-semibold text-ink">Built for every role</h2>
+          <div className="mt-8 grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
             {ROLES.map((r) => (
-              <div key={r.name} className="border-b border-line p-5 sm:odd:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
-                <div className="flex items-center gap-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-ctl bg-primary-soft text-primary"><r.icon className="h-4 w-4" aria-hidden /></span><h3 className="font-semibold">{r.name}</h3></div>
-                <ul className="mt-3 space-y-2 text-sm text-muted">{r.points.map((p) => <li key={p} className="flex gap-2"><span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary" />{p}</li>)}</ul>
+              <div key={r.name} className="bg-surface p-6">
+                <r.icon className="h-5 w-5 text-primary" aria-hidden />
+                <h3 className="mt-4 text-lg font-semibold text-ink">{r.name}</h3>
+                <ul className="mt-3 space-y-2.5 text-[15px] leading-snug text-muted">{r.points.map((p) => <li key={p} className="flex gap-2.5"><span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary" aria-hidden />{p}</li>)}</ul>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-16 overflow-hidden rounded-panel bg-rail p-8 text-rail-ink" aria-labelledby="trust">
-          <h2 id="trust" className="text-2xl font-semibold tracking-tight">Human decisions, accountable by design</h2>
-          <div className="mt-6 grid gap-8 text-sm leading-relaxed text-rail-text md:grid-cols-3">
-            <p className="border-l-2 border-[#9B87E6] pl-4"><strong className="block text-rail-ink">AI advises, people decide.</strong> AI never dispatches responders or diagnoses. Its output is schema-validated, labelled, and always reviewed by a dispatcher.</p>
-            <p className="border-l-2 border-primary-edge pl-4"><strong className="block text-rail-ink">Privacy first.</strong> Responder location is opt-in and deleted when sharing stops. Evidence photos are only visible to authorised users.</p>
-            <p className="border-l-2 border-primary-edge pl-4"><strong className="block text-rail-ink">Every action is recorded.</strong> Status changes, assignments and verifications are written to an audit trail administrators can review.</p>
+        <section className="mt-20 rounded-panel border border-line bg-surface p-8 shadow-card md:p-10" aria-labelledby="trust">
+          <h2 id="trust" className="font-display text-3xl font-semibold text-ink">Human decisions, accountable by design</h2>
+          <div className="mt-8 grid gap-8 text-[15px] leading-relaxed text-muted md:grid-cols-3">
+            <p className="border-l-2 border-advisory pl-4"><strong className="mb-1 block text-ink">AI advises, people decide.</strong> AI never dispatches responders or diagnoses. Its output is schema-validated, labelled, and always reviewed by a dispatcher.</p>
+            <p className="border-l-2 border-primary pl-4"><strong className="mb-1 block text-ink">Privacy first.</strong> Responder location is opt-in and deleted when sharing stops. Evidence photos are only visible to authorised users.</p>
+            <p className="border-l-2 border-primary pl-4"><strong className="mb-1 block text-ink">Every action is recorded.</strong> Status changes, assignments and verifications are written to an audit trail administrators can review.</p>
           </div>
         </section>
 

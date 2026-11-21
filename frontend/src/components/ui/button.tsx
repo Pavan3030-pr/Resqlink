@@ -17,11 +17,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-white shadow-[inset_0_-1px_0_rgba(0,0,0,0.18)] hover:bg-primary-hover',
+        primary: 'bg-primary text-white shadow-[0_1px_2px_rgba(8,72,73,0.25)] hover:bg-primary-hover',
         urgent: 'bg-critical text-white shadow-[inset_0_-1px_0_rgba(0,0,0,0.25)] hover:bg-critical-deep',
         success: 'bg-low text-white shadow-[inset_0_-1px_0_rgba(0,0,0,0.2)] hover:bg-emerald-900',
         danger: 'bg-critical text-white hover:bg-critical-deep',
-        secondary: 'border border-line-strong bg-surface text-ink shadow-card hover:bg-surface-2',
+        secondary: 'border border-line-strong bg-surface text-ink shadow-card hover:border-ink/30 hover:bg-surface-2',
         outlineDanger: 'border border-critical-edge bg-surface text-critical hover:bg-critical-tint',
         ghost: 'text-ink-2 hover:bg-surface-3',
         quiet: 'text-primary hover:bg-primary-soft',

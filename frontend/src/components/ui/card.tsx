@@ -13,8 +13,8 @@ const cardVariants = cva('rounded-panel border bg-surface', {
   variants: {
     elevation: {
       flat: 'border-line shadow-card',
-      raised: 'border-line-strong/70 shadow-raised',
-      hero: 'border-line-strong shadow-hero',
+      raised: 'border-line shadow-raised',
+      hero: 'border-line shadow-hero',
     },
     tone: {
       none: '',
@@ -34,7 +34,7 @@ export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElemen
   return <div className={cn('flex min-h-12 items-center justify-between gap-3 border-b border-line px-4 py-2.5', className)} {...props} />
 }
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn('text-[13px] font-semibold tracking-tight text-ink', className)} {...props} />
+  return <h2 className={cn('text-sm font-semibold tracking-tight text-ink', className)} {...props} />
 }
 export function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('p-4', className)} {...props} />
