@@ -82,7 +82,7 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
-    CorsConfigurationSource corsSource(AppProperties props) {
+    CorsConfigurationSource corsConfigurationSource(AppProperties props) {
         CorsConfiguration cfg = new CorsConfiguration();
         // Tolerate common copy-paste slips (surrounding quotes, trailing slash) in CORS_ALLOWED_ORIGINS.
         List<String> origins = Arrays.stream(props.cors().allowedOrigins().split(","))
