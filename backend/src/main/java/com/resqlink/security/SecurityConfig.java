@@ -84,9 +84,18 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsSource(AppProperties props) {
         CorsConfiguration cfg = new CorsConfiguration();
+        // Tolerate common copy-paste slips (surrounding quotes, trailing slash) in CORS_ALLOWED_ORIGINS.
         List<String> origins = Arrays.stream(props.cors().allowedOrigins().split(","))
-                .map(String::trim).filter(s -> !s.isEmpty()).toList();
-        cfg.setAllowedOrigins(origins);
+                .map(String::trim)
+                .map(s -> s.replaceAll("^[\"']+|[\"']+$", "").replaceAll("/+$", ""))
+                .filter(s -> !s.isEmpty()).toList();
+        // The project's own Vercel deployments (production and previews) and local development are always allowed.
+        // The API uses bearer tokens, not cookies, so this does not expose any session to another site.
+        java.util.List<String> patterns = new java.util.ArrayList<>(origins);
+        patterns.add("https://resqlink-*.vercel.app");
+        patterns.add("http://localhost:5173");
+        cfg.setAllowedOriginPatterns(patterns);
+        org.slf4j.LoggerFactory.getLogger(SecurityConfig.class).info("CORS allowed origin patterns: {}", patterns);
         cfg.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Idempotency-Key"));
         cfg.setExposedHeaders(List.of("X-Request-ID", "Retry-After"));
