@@ -1,4 +1,5 @@
 import { Phone } from 'lucide-react'
+import { SafetyCard } from '@/components/SafetyCard'
 import { IncidentMap } from '@/components/IncidentMap'
 import { PhaseTrack } from '@/components/ops/PhaseTrack'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,6 +45,8 @@ export function CitizenStatus({ d }: { d: IncidentDetail }) {
           {!done && <a href="tel:112" className="inline-flex h-11 items-center gap-2 rounded-ctl border border-critical-edge bg-surface px-4 text-sm font-semibold text-critical hover:bg-critical-tint"><Phone className="h-4 w-4" aria-hidden />{t('call112')}</a>}
         </div>
       </Card>
+
+      {!done && s !== 'REJECTED' && s !== 'DUPLICATE' && s !== 'CLOSED' && <SafetyCard category={d.summary.category} />}
 
       <Card>
         <CardHeader><CardTitle>{t('yourReport')}</CardTitle></CardHeader>

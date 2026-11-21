@@ -39,6 +39,7 @@ const incidents = [
   mk(3, 'MEDICAL', 'CRITICAL', 'VERIFIED', 'Elderly man collapsed, not breathing, bystanders doing CPR.', 17.4399, 78.4983, 19, { addressHint: 'Secunderabad station' }),
   mk(4, 'FLOOD', 'MEDIUM', 'VERIFIED', 'Water rising on the underpass, two cars stuck.', 17.4126, 78.4071, 33, { addressHint: 'Jubilee Hills underpass' }),
   mk(5, 'ACCIDENT', 'HIGH', 'RESPONDER_ACCEPTED', 'Two-wheeler collision with a truck at the junction.', 17.4065, 78.4772, 52, { addressHint: 'Banjara Hills Rd 1' }),
+  mk(7, 'ACCIDENT', 'HIGH', 'RESOLVED', 'Earlier collision on the same stretch, cleared.', 17.3858, 78.4872, 300, { addressHint: 'Tank Bund flyover' }),
   mk(6, 'OTHER', 'LOW', 'RESOLVED', 'Fallen tree blocking one lane, no injuries.', 17.4435, 78.3772, 130),
 ].map((i) => { i.allowedNext = NEXT[i.summary.status] ?? []; return i })
 incidents[4].assignments = [{ id: 1, incidentId: 5, incidentNumber: 'RL-1005', responderId: 4, responderName: 'Ambulance Unit 1 (demo)', responderType: 'AMBULANCE', status: 'ACCEPTED', assignedAt: ago(48), acceptedAt: ago(45), arrivedAt: ago(30) }]
@@ -75,6 +76,11 @@ http.createServer(async (req, res) => {
   if (p === '/auth/me') return send(res, 200, me)
   if (p === '/incidents/stats') return send(res, 200, stats())
   if (p === '/incidents/map') return send(res, 200, markers())
+  if (p === '/incidents' && req.method === 'POST') {
+    let raw = ''; await new Promise((r) => { req.on('data', (c) => (raw += c)); req.on('end', r) })
+    const cat = (raw.match(/"category":"(\w+)"/) ?? [])[1] ?? 'OTHER'; const lat = Number((raw.match(/"latitude":(-?[\d.]+)/) ?? [])[1] ?? 17.4); const lng = Number((raw.match(/"longitude":(-?[\d.]+)/) ?? [])[1] ?? 78.4)
+    const id = incidents.length + 1; const i = mk(id, cat, undefined, 'REPORTED', 'SOS sent with one tap.', lat, lng, 0); incidents.push(i); return send(res, 201, i)
+  }
   if (p === '/incidents' && req.method === 'GET') {
     let list = incidents.map((i) => i.summary)
     if (me.role === 'CITIZEN') list = list.slice(0, 2)

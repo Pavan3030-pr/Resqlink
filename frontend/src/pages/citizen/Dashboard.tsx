@@ -5,6 +5,7 @@ import { linkButtonClass } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState, ErrorState, PageHeader } from '@/components/ui/misc'
 import { ListSkeleton } from '@/components/ui/skeleton'
+import { SosPanel } from '@/components/SosPanel'
 import { usePendingReports } from '@/components/QueueSync'
 import { api } from '@/lib/api'
 import { CATEGORY_LABEL, timeAgo } from '@/lib/format'
@@ -47,6 +48,7 @@ export default function CitizenDashboard() {
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t('myReports')} subtitle="Track the status of emergencies you have reported."
         actions={<Link to="/citizen/report" className={cn(linkButtonClass({ size: 'lg' }), 'hidden sm:inline-flex')}><Plus className="h-5 w-5" aria-hidden />{t('reportTitle')}</Link>} />
+      <SosPanel />
       <p role="note" className="mb-5 rounded-panel border border-medium-edge bg-medium-tint px-4 py-3 text-[13px] leading-relaxed text-medium">{t('emergencyNotice')}</p>
       {pending.length > 0 && (
         <Card className="mb-5" tone="warn">

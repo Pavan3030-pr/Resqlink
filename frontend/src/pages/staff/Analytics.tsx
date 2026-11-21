@@ -4,6 +4,7 @@ import { ErrorNote, PageHeader, PageSpinner, Stat } from '@/components/ui/misc'
 import { api } from '@/lib/api'
 import { CATEGORY_LABEL, formatMinutes, PRIORITY_COLOR, STATUS_LABEL } from '@/lib/format'
 import type { Stats } from '@/lib/types'
+import { HotspotCard } from './HotspotCard'
 
 function pct(v: number | undefined | null): string { return v == null ? 'No data yet' : `${Math.round(v * 100)}%` }
 
@@ -63,6 +64,7 @@ export default function Analytics() {
       <PageHeader title="Reports & analytics" subtitle="Response-time measurements and incident breakdowns." />
       <ErrorNote error={q.error} />
       {q.isLoading ? <PageSpinner /> : q.data && <StatsView s={q.data} />}
+      <HotspotCard />
     </div>
   )
 }

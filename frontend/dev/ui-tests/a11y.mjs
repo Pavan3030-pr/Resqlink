@@ -20,7 +20,7 @@ for (const [email, paths] of targets) {
     await Promise.all([p.waitForNavigation({ waitUntil: 'networkidle2' }), p.click('button[type=submit]')]); await sleep(1000)
   }
   for (const path of paths) {
-    await p.goto('http://localhost:4173' + path, { waitUntil: 'networkidle2' }); await sleep(900)
+    await p.goto('http://localhost:4173' + path, { waitUntil: 'networkidle2' }); await sleep(2200)
     await p.evaluate(axeSrc)
     const r = await p.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'best-practice'], resultTypes: ['violations'] })).violations.map((v) => ({ id: v.id, impact: v.impact, n: v.nodes.length, sample: v.nodes[0].html.slice(0, 110), help: v.help })))
     const real = r.filter((v) => !['region'].includes(v.id))

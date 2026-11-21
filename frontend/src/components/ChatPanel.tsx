@@ -1,6 +1,8 @@
 import { FileText, Loader2, Paperclip, Send } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/lib/auth'
+import { quickRepliesFor } from '@/lib/quickReplies'
 import { chat, type ChannelRef, type ChatMessage, type LinkState } from '@/lib/nexconn'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +17,8 @@ export function ChatPanel({ channel, title, names, height = 420, onMessages }: {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
+  const quick = quickRepliesFor(user?.role)
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [link, setLink] = useState<LinkState>(chat.status)
@@ -60,15 +64,15 @@ export function ChatPanel({ channel, title, names, height = 420, onMessages }: {
     sentCb.current?.(messages)
   }, [messages])
 
-  async function send() {
-    const t = text.trim()
+  async function send(override?: string) {
+    const t = (override ?? text).trim()
     if (!t || sending) return
     setSending(true)
     setError(null)
     try {
       const m = await chat.sendText(channel, t)
       setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]))
-      setText('')
+      if (override === undefined) setText('')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Message not sent')
     } finally {
@@ -118,6 +122,11 @@ export function ChatPanel({ channel, title, names, height = 420, onMessages }: {
         <div ref={endRef} />
       </div>
       {error && <p role="alert" className="border-t border-red-100 bg-red-50 px-4 py-1.5 text-xs text-critical">{error}</p>}
+      {quick.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 border-t border-line px-3 pt-2" role="group" aria-label="Quick replies">
+          {quick.map((q) => <button key={q} type="button" disabled={sending || link !== 'connected'} onClick={() => void send(q)} className="rounded-full border border-line-strong bg-surface px-3 py-1 text-xs font-medium text-ink-2 hover:bg-surface-2 disabled:opacity-50">{q}</button>)}
+        </div>
+      )}
       <form className="flex items-end gap-2 border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); void send() }}>
         <input ref={fileRef} type="file" className="hidden" onChange={(e) => void sendFile(e.target.files?.[0])} aria-label="Attach file" />
         <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()} disabled={sending || link !== 'connected'} aria-label="Attach file"><Paperclip className="h-4 w-4" /></Button>

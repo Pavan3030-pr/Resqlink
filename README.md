@@ -76,6 +76,12 @@ No incidents are pre-seeded. Run the road-accident story live (see below).
 
 ## Highlights
 
+- **One-tap SOS:** a citizen picks the emergency type and their GPS position goes straight to the dispatch queue. Idempotent, offline-safe, works in English, Hindi and Telugu.
+- **"While you wait" safety guidance:** category-specific first-response steps for the reporter, always deferring to the 112 call-taker.
+- **Hotspot view:** dispatchers see where incidents cluster (about 1 km cells, priority-weighted, recency-decayed). A transparent counting rule, labelled as not a forecast.
+- **Chat quick replies:** responders and dispatchers send "On my way", "ETA 5 minutes", "Need an additional ambulance" in one tap through the real Nexconn channel.
+- **Installable and offline-capable:** a service worker opens the app shell with no connection and never caches API data.
+
 - **Command center:** priority queue with live wait timers, *next best action*, critical alerts, coverage-gap analysis, a live/reconnecting/offline indicator that never lies.
 - **AI that helps and stays honest:** multilingual understanding, redaction of personal data, prompt-injection flagging, a safety floor so AI can never downplay a life-threatening report, visible fallback status, semantic duplicate detection, and a repeatable evaluation harness with measured (not claimed) results.
 - **Real Nexconn, resilient:** per-incident group channels synced by a persisted retry state machine, so a chat outage never fails or corrupts an assignment.
@@ -113,4 +119,4 @@ NEXCONN_APP_KEY=... NEXCONN_APP_SECRET=... NEXCONN_API_DOMAIN=... node scripts/n
 - Conversation summaries use messages the dispatcher's client reads from Nexconn and sends to `/ai/.../conversation-summary`; the backend does not store message content.
 - Duplicate detection uses distance, time, category, text overlap and (with a Gemini key) embedding similarity; image similarity is not implemented.
 - Responder ranking is a transparent scoring rule (distance, type fit, workload), not a model.
-- Voice/video calls and hotspot prediction ("Could Have") are out of scope. Offline sync covers text reports; photos cannot be queued.
+- Voice/video calls and predictive hotspot *forecasting* are out of scope (the hotspot view only counts recorded incidents). Offline sync covers text reports; photos cannot be queued.

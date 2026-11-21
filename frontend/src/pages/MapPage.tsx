@@ -94,7 +94,7 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
   }, [selected, shown])
 
   return (
-    <main className="mx-auto max-w-[96rem]">
+    <div className="mx-auto max-w-[96rem]">
       <PageHeader
         title="Live emergency map"
         subtitle={
@@ -351,6 +351,6 @@ export default function MapPage({ mode }: { mode: 'staff' | 'responder' }) {
           </Card>
         </div>
       )}
-    </main>
+    </div>
   )
 }

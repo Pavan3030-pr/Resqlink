@@ -66,6 +66,30 @@ const clickText = async (p, t, sel = 'button') => {
   await p.screenshot({ path: `${SHOTS}/detail-assigned.png`, fullPage: true })
   ok('no console/page errors (dispatcher)', errs.length === 0 || (console.log(errs), false))
 }
+// --- upgrades: SOS, safety guidance, hotspots, quick replies
+{
+  const { p, errs } = await session('citizen@resqlink.demo')
+  const ctx = p.browserContext(); await ctx.overridePermissions('http://localhost:4173', ['geolocation']); await p.setGeolocation({ latitude: 17.385, longitude: 78.4867, accuracy: 20 })
+  await p.goto('http://localhost:4173/citizen', { waitUntil: 'networkidle2' })
+  let t = await text(p)
+  ok('citizen sees the one-tap SOS button', t.includes('SOS: send my location'))
+  await clickText(p, 'SOS: send my location'); await sleep(300)
+  ok('SOS asks what the emergency is', (await text(p)).includes('What is the emergency?'))
+  await clickText(p, 'Medical emergency'); await sleep(1500)
+  t = await text(p)
+  ok('SOS creates a report from GPS and opens its status page', /RL-1008/.test(t) && /SOS .* sent|Received|reference/i.test(t))
+  ok('reporter sees category-specific safety guidance', t.includes('While you wait: stay safe') && t.includes('112'))
+  await p.screenshot({ path: `${SHOTS}/citizen-sos-safety.png`, fullPage: true })
+  ok('no console/page errors (SOS)', errs.length === 0 || (console.log(errs), false))
+}
+{
+  const { p, errs } = await session('dispatcher@resqlink.demo')
+  await p.goto('http://localhost:4173/dispatch/analytics', { waitUntil: 'networkidle2' })
+  const t = await text(p)
+  ok('analytics lists the Tank Bund hotspot with an honest "does not forecast" note', t.includes('Incident hotspots') && /\d+ reports/.test(t) && t.includes('does not forecast'))
+  await p.screenshot({ path: `${SHOTS}/analytics-hotspots.png`, fullPage: true })
+  ok('no console/page errors (hotspots)', errs.length === 0 || (console.log(errs), false))
+}
 // --- citizen: status banner + offline queue
 {
   const { p, errs } = await session('citizen@resqlink.demo')
