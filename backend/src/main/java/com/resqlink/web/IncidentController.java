@@ -45,9 +45,12 @@ public class IncidentController {
     private final Validator validator;
     private final com.resqlink.service.IdempotencyService idempotency;
     private final com.resqlink.security.RateLimiter limiter;
+    private final int reportsPerMinute;
 
     public IncidentController(IncidentService incidents, CurrentUser current, ObjectMapper mapper, Validator validator,
-                              com.resqlink.service.IdempotencyService idempotency, com.resqlink.security.RateLimiter limiter) {
+                              com.resqlink.service.IdempotencyService idempotency, com.resqlink.security.RateLimiter limiter,
+                              com.resqlink.config.AppProperties props) {
+        this.reportsPerMinute = Math.max(1, props.rateLimit().reportPerMinute());
         this.idempotency = idempotency;
         this.limiter = limiter;
         this.incidents = incidents;
@@ -63,7 +66,6 @@ public class IncidentController {
                                     @RequestPart(value = "image", required = false) MultipartFile image,
                                     @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         User u = current.requireRole(Role.CITIZEN, Role.DISPATCHER, Role.ADMIN);
-        throttleReports(u);
         CreateIncidentRequest req;
         try {
             req = mapper.readValue(data, CreateIncidentRequest.class);
@@ -75,7 +77,10 @@ public class IncidentController {
             throw ApiException.badRequest(violations.iterator().next().getPropertyPath() + ": "
                     + violations.iterator().next().getMessage());
         }
-        return idempotency.execute(u.getId(), "incident.create", idemKey, IncidentDetailDto.class, () -> incidents.create(u, req, image));
+        return idempotency.execute(u.getId(), "incident.create", idemKey, IncidentDetailDto.class, () -> {
+            throttleReports(u); // inside the action: a replay of an already-processed request is not counted
+            return incidents.create(u, req, image);
+        });
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -83,13 +88,15 @@ public class IncidentController {
     public IncidentDetailDto createJson(@RequestBody @jakarta.validation.Valid CreateIncidentRequest req,
                                         @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         User u = current.requireRole(Role.CITIZEN, Role.DISPATCHER, Role.ADMIN);
-        throttleReports(u);
-        return idempotency.execute(u.getId(), "incident.create", idemKey, IncidentDetailDto.class, () -> incidents.create(u, req, null));
+        return idempotency.execute(u.getId(), "incident.create", idemKey, IncidentDetailDto.class, () -> {
+            throttleReports(u);
+            return incidents.create(u, req, null);
+        });
     }
 
     /** Per-user limit (shared across instances) so one account cannot flood the dispatcher queue. */
     private void throttleReports(User u) {
-        if (!limiter.allow("report:" + u.getId(), 6, 60)) {
+        if (!limiter.allow("report:" + u.getId(), reportsPerMinute, 60)) {
             throw new com.resqlink.error.ApiException(HttpStatus.TOO_MANY_REQUESTS, "You are sending reports too quickly. Wait a minute and try again.");
         }
     }

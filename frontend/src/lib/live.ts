@@ -48,6 +48,7 @@ class LiveStream {
   private attempt = 0
   private timer: ReturnType<typeof setTimeout> | null = null
   private running = false
+  private gen = 0 // bumped on every start/stop so a superseded loop can never keep running
 
   subscribe = (l: Listener) => { this.listeners.add(l); return () => this.listeners.delete(l) }
   onHint(h: (hint: LiveHint) => void) { this.hintHandlers.add(h); return () => this.hintHandlers.delete(h) }
@@ -58,41 +59,44 @@ class LiveStream {
     if (this.running) return
     this.running = true
     this.attempt = 0
-    void this.loop()
+    void this.loop(++this.gen)
   }
 
   stop() {
     this.running = false
+    this.gen++
     this.abort?.abort()
     if (this.timer) clearTimeout(this.timer)
     this.set('offline')
   }
 
-  private async loop() {
-    while (this.running) {
+  private async loop(gen: number) {
+    const alive = () => this.running && gen === this.gen
+    while (alive()) {
       this.set(this.attempt === 0 ? 'connecting' : 'reconnecting')
-      this.abort = new AbortController()
+      const ctl = new AbortController()
+      this.abort = ctl
       try {
         const token = tokenStore.get()
         if (!token) { this.set('offline'); return }
-        const res = await fetch(`${API_BASE}/api/v1/events/stream`, { headers: { Authorization: `Bearer ${token}`, Accept: 'text/event-stream' }, signal: this.abort.signal })
-        if (res.status === 401 || res.status === 403) { this.set('offline'); this.running = false; return }
+        const res = await fetch(`${API_BASE}/api/v1/events/stream`, { headers: { Authorization: `Bearer ${token}`, Accept: 'text/event-stream' }, signal: ctl.signal })
+        if (res.status === 401 || res.status === 403) { if (alive()) { this.set('offline'); this.running = false }; return }
         if (!res.ok || !res.body) throw new Error(`stream ${res.status}`)
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
         let buf = ''
         for (;;) {
           const { value, done } = await reader.read()
-          if (done) break
+          if (done || !alive()) { if (!alive()) ctl.abort(); break }
           buf += decoder.decode(value, { stream: true })
           const { frames, rest } = parseSse(buf)
           buf = rest
           for (const f of frames) this.handle(f)
         }
       } catch {
-        if (!this.running) return
+        if (!alive()) return
       }
-      if (!this.running) return
+      if (!alive()) return
       this.attempt++
       this.set(typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'reconnecting')
       await new Promise<void>((r) => { this.timer = setTimeout(r, backoffMs(this.attempt)) })

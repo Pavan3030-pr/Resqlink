@@ -8,6 +8,10 @@ const MAX_PENDING = 10
 export interface PendingReport {
   localId: string
   savedAt: string
+  /** Account that wrote the report; a different account on the same device never sends it. */
+  owner?: number | null
+  /** Key of the original submit attempt, so a retry after a lost response cannot create a second incident. */
+  idempotencyKey?: string
   payload: {
     category: string
     description: string
@@ -41,12 +45,23 @@ function write(list: PendingReport[]): boolean {
   }
 }
 
-export function pendingReports(): PendingReport[] { return read() }
+/** Reports waiting to be sent. With an owner, only that account's reports (and legacy ownerless ones) are returned. */
+export function pendingReports(owner?: number | null): PendingReport[] {
+  const all = read()
+  if (owner === undefined) return all
+  return all.filter((r) => r.owner == null || r.owner === owner)
+}
 
-export function enqueueReport(payload: PendingReport['payload']): PendingReport | null {
+export function enqueueReport(payload: PendingReport['payload'], opts: { owner?: number | null; idempotencyKey?: string } = {}): PendingReport | null {
   const list = read()
   if (list.length >= MAX_PENDING) return null
-  const item: PendingReport = { localId: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, savedAt: new Date().toISOString(), payload }
+  const item: PendingReport = {
+    localId: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    savedAt: new Date().toISOString(),
+    owner: opts.owner ?? null,
+    idempotencyKey: opts.idempotencyKey,
+    payload,
+  }
   return write([...list, item]) ? item : null
 }
 
@@ -59,18 +74,27 @@ export function isNetworkFailure(e: unknown): boolean {
   return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === 0
 }
 
-/** Submits queued reports in order; stops at the first network failure. Returns how many were sent. */
-/** The queue item id doubles as the Idempotency-Key, so a retry after a lost response can never create a second incident. */
-export async function flushQueue(submit: (p: PendingReport['payload'], idempotencyKey: string) => Promise<unknown>): Promise<number> {
+/** Statuses that mean the server will never accept this payload; everything else (401, 408, 409, 429, 5xx) is retried. */
+const PERMANENT = new Set([400, 404, 413, 415, 422])
+export function isPermanentRejection(e: unknown): boolean {
+  return typeof e === 'object' && e !== null && 'status' in e && PERMANENT.has((e as { status: number }).status)
+}
+
+/**
+ * Submits queued reports in order. Only permanently rejected reports are discarded; a network failure, an expired
+ * session, rate limiting or a server error stops the run and keeps the report for the next attempt, so an
+ * emergency report is never lost to a transient problem. The first submit key is reused as the Idempotency-Key.
+ */
+export async function flushQueue(submit: (p: PendingReport['payload'], idempotencyKey: string) => Promise<unknown>, owner?: number | null): Promise<number> {
   let sent = 0
-  for (const item of read()) {
+  for (const item of pendingReports(owner)) {
     try {
-      await submit(item.payload, item.localId)
+      await submit(item.payload, item.idempotencyKey ?? item.localId)
       removePending(item.localId)
       sent++
     } catch (e) {
-      if (isNetworkFailure(e)) break
-      removePending(item.localId) // the server rejected it permanently; do not retry forever
+      if (isPermanentRejection(e)) { removePending(item.localId); continue }
+      break
     }
   }
   return sent

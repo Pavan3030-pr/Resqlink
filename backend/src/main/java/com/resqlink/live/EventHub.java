@@ -3,7 +3,9 @@ package com.resqlink.live;
 import com.resqlink.domain.Incident;
 import com.resqlink.domain.Role;
 import com.resqlink.domain.User;
+import com.resqlink.domain.AccountStatus;
 import com.resqlink.repo.IncidentRepository;
+import com.resqlink.repo.UserRepository;
 import com.resqlink.security.CurrentUser;
 import com.resqlink.service.IncidentService;
 import java.io.IOException;
@@ -29,14 +31,16 @@ public class EventHub {
     private static final Logger log = LoggerFactory.getLogger(EventHub.class);
     private static final int MAX_STREAMS_PER_USER = 4;
 
-    private record Sub(long userId, Role role, SseEmitter emitter) {}
+    private record Sub(long userId, Role role, int tokenVersion, SseEmitter emitter) {}
 
     private final Map<Long, List<Sub>> subs = new ConcurrentHashMap<>();
     private final AtomicLong seq = new AtomicLong();
     private final IncidentRepository incidents;
     private final IncidentService incidentService;
+    private final UserRepository users;
 
-    public EventHub(IncidentRepository incidents, IncidentService incidentService) {
+    public EventHub(IncidentRepository incidents, IncidentService incidentService, UserRepository users) {
+        this.users = users;
         this.incidents = incidents;
         this.incidentService = incidentService;
     }
@@ -44,7 +48,7 @@ public class EventHub {
     public SseEmitter subscribe(User user) {
         SseEmitter emitter = new SseEmitter(30 * 60_000L);
         List<Sub> list = subs.computeIfAbsent(user.getId(), k -> new CopyOnWriteArrayList<>());
-        Sub sub = new Sub(user.getId(), user.getRole(), emitter);
+        Sub sub = new Sub(user.getId(), user.getRole(), user.getTokenVersion(), emitter);
         while (list.size() >= MAX_STREAMS_PER_USER) {
             Sub oldest = list.remove(0);
             try { oldest.emitter().complete(); } catch (RuntimeException ignored) { /* already closed */ }
@@ -95,10 +99,24 @@ public class EventHub {
         }
     }
 
+    /**
+     * Heartbeat plus re-validation: a stream is closed once its account is suspended, its role changed or its
+     * sessions were revoked, so authorisation changes apply within one heartbeat instead of at the 30-minute timeout.
+     */
     @Scheduled(fixedDelay = 20_000, initialDelay = 20_000)
     public void heartbeat() {
-        for (List<Sub> list : subs.values()) {
+        for (Map.Entry<Long, List<Sub>> entry : subs.entrySet()) {
+            List<Sub> list = entry.getValue();
+            if (list.isEmpty()) continue;
+            User current = users.findById(entry.getKey()).orElse(null);
             for (Sub s : list) {
+                boolean stale = current == null || current.getStatus() != AccountStatus.ACTIVE
+                        || current.getRole() != s.role() || current.getTokenVersion() != s.tokenVersion();
+                if (stale) {
+                    list.remove(s);
+                    try { s.emitter().complete(); } catch (RuntimeException ignored) { /* already closed */ }
+                    continue;
+                }
                 try {
                     s.emitter().send(SseEmitter.event().comment("hb"));
                 } catch (IOException | IllegalStateException ex) {

@@ -1,6 +1,6 @@
 server:
   port: ${PORT:8080}
-  forward-headers-strategy: framework
+  forward-headers-strategy: native # Tomcat resolves the real client IP from X-Forwarded-For (trusted private proxies only)
   error:
     include-message: never
     include-stacktrace: never

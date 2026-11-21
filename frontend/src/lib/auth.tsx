@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { API_BASE, api, setUnauthorizedHandler, tokenStore } from './api'
+import { API_BASE, ApiError, api, setUnauthorizedHandler, tokenStore } from './api'
 import { chat } from './nexconn'
 import type { AuthResponse, Role, User } from './types'
 
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!tokenStore.get()) return
     api.get<User>('/auth/me')
       .then(setUser)
-      .catch(() => tokenStore.clear())
+      .catch((e) => { if (e instanceof ApiError && (e.status === 401 || e.status === 403)) tokenStore.clear() }) // a dropped connection must not sign the user out
       .finally(() => setLoading(false))
   }, [])
 

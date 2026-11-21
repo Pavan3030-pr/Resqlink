@@ -11,8 +11,13 @@ export function Evidence({ url }: { url: string }) {
   const [failed, setFailed] = useState(false)
   useEffect(() => {
     let revoked: string | null = null
-    api.imageBlobUrl(url).then((u) => { revoked = u; setSrc(u) }).catch(() => setFailed(true))
-    return () => { if (revoked) URL.revokeObjectURL(revoked) }
+    let cancelled = false
+    api.imageBlobUrl(url).then((u) => {
+      if (cancelled) { URL.revokeObjectURL(u); return }
+      revoked = u
+      setSrc(u)
+    }).catch(() => { if (!cancelled) setFailed(true) })
+    return () => { cancelled = true; if (revoked) URL.revokeObjectURL(revoked) }
   }, [url])
   if (failed) return <p className="text-sm text-muted">Photo could not be loaded.</p>
   if (!src) return <Skeleton className="h-40 w-56 rounded-ctl" />

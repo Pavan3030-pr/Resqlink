@@ -347,15 +347,34 @@ public class IncidentService {
         }
         if (next == IncidentStatus.RESOLVED) {
             Instant now = Instant.now();
+            Set<Long> freed = new java.util.HashSet<>();
             for (IncidentAssignment a : assignments.findByIncidentIdAndAssignmentStatusIn(i.getId(),
                     List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED, AssignmentStatus.ARRIVED))) {
                 a.setAssignmentStatus(AssignmentStatus.COMPLETED);
                 a.setCompletedAt(now);
+                freed.add(a.getResponderId());
             }
+            releaseResponders(freed);
         }
         transition(i, next, actor.getId(), reason);
         audit.log(actor.getId(), "INCIDENT_STATUS", "INCIDENT", i.getId(), i.getStatus() + (reason == null ? "" : ": " + reason));
         return detail(actor, i.getId());
+    }
+
+    /** Responders whose last live assignment just ended go back to AVAILABLE (same rule as a responder completing). */
+    private void releaseResponders(Set<Long> responderIds) {
+        if (responderIds.isEmpty()) return;
+        for (Long rid : responderIds) {
+            profiles.findByUserId(rid).ifPresent(p -> {
+                boolean stillLive = !assignments.findByResponderIdAndAssignmentStatusIn(rid,
+                        List.of(AssignmentStatus.ASSIGNED, AssignmentStatus.ACCEPTED, AssignmentStatus.ARRIVED)).isEmpty();
+                if (!stillLive && p.getAvailabilityStatus() == com.resqlink.domain.AvailabilityStatus.BUSY) {
+                    p.setAvailabilityStatus(com.resqlink.domain.AvailabilityStatus.AVAILABLE);
+                    profiles.save(p);
+                }
+            });
+        }
+        live.staff("responder.updated");
     }
 
     @Transactional
@@ -386,7 +405,8 @@ public class IncidentService {
     }
 
     /** Timeline and audit trail for one incident, for evidence and after-action review. */
-    @Transactional(readOnly = true)
+    /** Not read-only: exporting writes an audit entry, and PostgreSQL rejects writes in a read-only transaction. */
+    @Transactional
     public com.resqlink.web.dto.Dtos.IncidentExportDto export(User actor, Long id) {
         IncidentDetailDto d = detail(actor, id);
         List<Map<String, Object>> rows = audit.forResource("INCIDENT", String.valueOf(id));

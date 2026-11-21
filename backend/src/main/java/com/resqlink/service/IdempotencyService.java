@@ -59,7 +59,11 @@ public class IdempotencyService {
             } catch (Exception e) {
                 json = null;
             }
-            jdbc.update("UPDATE idempotency_keys SET status = 'DONE', response_json = ? WHERE user_id = ? AND scope = ? AND key_hash = ?", json, userId, scope, hash);
+            if (json == null) { // nothing replayable to store: release the key rather than leave an unreadable DONE row
+                jdbc.update("DELETE FROM idempotency_keys WHERE user_id = ? AND scope = ? AND key_hash = ?", userId, scope, hash);
+            } else {
+                jdbc.update("UPDATE idempotency_keys SET status = 'DONE', response_json = ? WHERE user_id = ? AND scope = ? AND key_hash = ?", json, userId, scope, hash);
+            }
             return result;
         } catch (RuntimeException e) {
             jdbc.update("DELETE FROM idempotency_keys WHERE user_id = ? AND scope = ? AND key_hash = ?", userId, scope, hash); // failed: allow a retry

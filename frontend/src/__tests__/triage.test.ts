@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { enqueueReport, flushQueue, isNetworkFailure, pendingReports } from '@/lib/offlineQueue'
+import { enqueueReport, flushQueue, isNetworkFailure, isPermanentRejection, pendingReports } from '@/lib/offlineQueue'
 import { formatWait, nextBestAction, slaLevel, waitMinutes } from '@/lib/triage'
 import type { IncidentSummary } from '@/lib/types'
 
@@ -68,6 +68,25 @@ describe('offline report queue', () => {
     expect(pendingReports()).toHaveLength(0)
     expect(isNetworkFailure({ status: 0 })).toBe(true)
     expect(isNetworkFailure(new Error('x'))).toBe(false)
+  })
+  it('keeps reports on transient server errors (429, 5xx, 401) and stops the run', async () => {
+    enqueueReport(payload)
+    enqueueReport(payload)
+    for (const status of [429, 503, 401]) {
+      expect(await flushQueue(async () => { throw { status } })).toBe(0)
+      expect(pendingReports()).toHaveLength(2)
+    }
+    expect(isPermanentRejection({ status: 422 })).toBe(true)
+    expect(isPermanentRejection({ status: 429 })).toBe(false)
+  })
+  it('reuses the original submit key and only sends the signed-in account\'s reports', async () => {
+    enqueueReport(payload, { owner: 1, idempotencyKey: 'web-abc' })
+    enqueueReport(payload, { owner: 2 })
+    const keys: string[] = []
+    expect(await flushQueue(async (_p, key) => { keys.push(key) }, 1)).toBe(1)
+    expect(keys).toEqual(['web-abc'])
+    expect(pendingReports(1)).toHaveLength(0)
+    expect(pendingReports(2)).toHaveLength(1)
   })
   it('survives corrupt storage', () => {
     localStorage.setItem('resqlink.pendingReports.v1', '{not json')

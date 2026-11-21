@@ -11,6 +11,7 @@ import { Field, Input, Textarea } from '@/components/ui/fields'
 import { ErrorNote } from '@/components/ui/misc'
 import { useToast } from '@/components/ui/toast'
 import { api, ApiError } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { useI18n } from '@/lib/i18n'
 import { shrinkImage } from '@/lib/image'
 import { enqueueReport } from '@/lib/offlineQueue'
@@ -38,6 +39,7 @@ export default function ReportForm() {
   const qc = useQueryClient()
   const toast = useToast()
   const { t } = useI18n()
+  const { user } = useAuth()
   const [image, setImage] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [imageError, setImageError] = useState<string | null>(null)
@@ -98,7 +100,7 @@ export default function ReportForm() {
       } catch (e) {
         // No connection: keep the report on this device and send it automatically later (photos cannot be queued).
         if (e instanceof ApiError && e.status === 0) {
-          if (enqueueReport(payload)) return 'queued'
+          if (enqueueReport(payload, { owner: user?.id ?? null, idempotencyKey: idemKey.current })) return 'queued'
         }
         throw e
       }
