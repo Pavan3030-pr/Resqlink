@@ -63,7 +63,7 @@ describe('form validation', () => {
     expect(reportSchema.safeParse(valid).success).toBe(true)
   })
   it('rejects short descriptions and out-of-range coordinates', () => {
-    expect(reportSchema.safeParse({ ...valid, description: 'help' }).success).toBe(false)
+    expect(reportSchema.safeParse({ ...valid, description: 'ab' }).success).toBe(false)
     expect(reportSchema.safeParse({ ...valid, latitude: 91 }).success).toBe(false)
     expect(reportSchema.safeParse({ ...valid, longitude: -181 }).success).toBe(false)
     expect(reportSchema.safeParse({ ...valid, latitude: undefined }).success).toBe(false)

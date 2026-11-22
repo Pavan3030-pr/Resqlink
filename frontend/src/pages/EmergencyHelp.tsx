@@ -39,6 +39,7 @@ export default function EmergencyHelp() {
             ))}
           </div>
         </section>
+        <p className="mt-10 text-sm text-muted">Needs no JavaScript: <a className="font-medium text-primary underline" href="/emergency.html">plain-page version</a>, saved for offline use.</p>
       </main>
     </div>
   )

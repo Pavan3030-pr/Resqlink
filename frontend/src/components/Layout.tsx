@@ -13,6 +13,7 @@ import { ErrorBoundary } from './ErrorBoundary'
 import { FreshnessBadge } from './FreshnessBadge'
 import { AccessibilityMenu } from './AccessibilityMenu'
 import { ConnectionBanner } from './ConnectionBanner'
+import { SandboxBanner } from './SandboxBanner'
 import { BrandMark } from './ops/BrandMark'
 import { Dialog } from './ui/dialog'
 import { LiveDot } from './ui/live'
@@ -160,6 +161,7 @@ export function Layout() {
           {user.role === 'CITIZEN' && <QueueSync />}
           <ChatBootstrap />
           {(user.role === 'DISPATCHER' || user.role === 'ADMIN') && <StaffAlerts />}
+          <SandboxBanner />
           <ConnectionBanner />
           <ErrorBoundary><Outlet /></ErrorBoundary>
         </main>

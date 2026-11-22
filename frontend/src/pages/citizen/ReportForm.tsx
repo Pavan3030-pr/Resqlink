@@ -21,7 +21,7 @@ import { CategoryTiles, LocationPicker, PhotoPicker } from './ReportParts'
 
 export const reportSchema = z.object({
   category: z.enum(['ACCIDENT', 'FIRE', 'FLOOD', 'MEDICAL', 'OTHER']),
-  description: z.string().trim().min(10, 'Please describe what happened (at least 10 characters)').max(2000, 'Keep it under 2000 characters'),
+  description: z.string().trim().min(3, 'Add a few words about what happened').max(2000, 'Keep it under 2000 characters'),
   latitude: z.number({ invalid_type_error: 'Choose a location' }).min(-90).max(90),
   longitude: z.number({ invalid_type_error: 'Choose a location' }).min(-180).max(180),
   contactName: z.string().max(120).optional(),

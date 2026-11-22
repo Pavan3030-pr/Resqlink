@@ -1,7 +1,7 @@
 /* ResQLink service worker: the app shell opens with no connection. API traffic is never cached or intercepted,
    so no personal or incident data is stored by the worker. Bump VERSION to invalidate old caches. */
-const VERSION = 'resqlink-shell-v1'
-const SHELL = ['/', '/favicon.svg', '/manifest.webmanifest']
+const VERSION = 'resqlink-shell-v2'
+const SHELL = ['/', '/emergency.html', '/favicon.svg', '/manifest.webmanifest']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()))

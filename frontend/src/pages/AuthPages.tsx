@@ -9,6 +9,8 @@ import { ErrorNote } from '@/components/ui/misc'
 import { PasswordInput } from '@/components/PasswordInput'
 import { ServerStatus } from '@/components/ServerStatus'
 import { ApiError } from '@/lib/api'
+import { readFormValues } from '@/lib/forms'
+import { enterSandbox, SANDBOX_ROLES } from '@/lib/sandbox'
 import { homePathFor, useAuth } from '@/lib/auth'
 import { BrandMark } from '@/components/ops/BrandMark'
 import { useQuery } from '@tanstack/react-query'
@@ -60,17 +62,23 @@ export function Login() {
   const [error, setError] = useState<unknown>(null)
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) })
   const demoPassword = (import.meta.env.VITE_DEMO_PASSWORD as string | undefined) || ''
-  async function enterAs(email: string) {
+  async function enterAs(email: string, password = demoPassword) {
     setError(null)
-    try { nav(homePathFor((await login(email, demoPassword)).role), { replace: true }) } catch (e) { setError(e) }
+    try { nav(homePathFor((await login(email, password)).role), { replace: true }) } catch (e) { setError(e) }
   }
   const demo = useQuery({ queryKey: ['demo-info'], queryFn: () => apiClient.get<DemoInfo>('/public/demo-info'), enabled: import.meta.env.VITE_DEMO_MODE === 'true', retry: 0 })
   return (
     <Shell title="Sign in" subtitle="Access your ResQLink workspace.">
-      <form className="space-y-4" onSubmit={handleSubmit(async (v) => {
-        setError(null)
-        try { nav(homePathFor((await login(v.email, v.password)).role), { replace: true }) } catch (e) { setError(e) }
-      })}>
+      <form className="space-y-4" noValidate onSubmit={(e) => {
+        const f = readFormValues(e.currentTarget, ['email', 'password'])
+        for (const k of ['email', 'password'] as const) if (f[k] !== undefined) setValue(k, f[k])
+        return handleSubmit(async (v) => {
+          setError(null)
+          try { nav(homePathFor((await login(v.email.trim(), v.password)).role), { replace: true }) } catch (err) {
+            setError(err instanceof ApiError && err.status === 401 ? new ApiError(401, 'Invalid e-mail or password. After several wrong attempts, sign-in pauses for a few minutes.') : err)
+          }
+        })(e)
+      }}>
         <Field label="E-mail" htmlFor="email" error={errors.email?.message}><Input id="email" type="email" autoComplete="email" {...register('email')} /></Field>
         <Field label="Password" htmlFor="password" error={errors.password?.message}><PasswordInput id="password" autoComplete="current-password" {...register('password')} /></Field>
         <ErrorNote error={error} />
@@ -86,6 +94,16 @@ export function Login() {
           ))}</div>
         </div>
       )}
+      <div className="mt-5 rounded-panel border border-advisory-edge bg-advisory-tint p-3 text-sm">
+        <p className="font-medium text-ink">Try it without an account</p>
+        <p className="mb-2 text-xs text-ink-2">Sandbox demo: simulated data inside your browser, no password. Chat and AI are not connected in the sandbox.</p>
+        <div className="grid grid-cols-2 gap-2">
+          {SANDBOX_ROLES.map((r) => (
+            <button key={r.role} type="button" onClick={async () => { enterSandbox(); await enterAs(r.email, 'sandbox') }}
+              className="rounded-ctl border border-line-strong bg-surface px-3 py-2 text-left hover:bg-surface-2"><span className="block text-sm font-semibold text-ink">{r.label}</span><span className="block text-xs text-muted">{r.blurb}</span></button>
+          ))}
+        </div>
+      </div>
       <p className="mt-5 text-center text-sm text-muted">New here? <Link className="font-medium text-primary" to="/register">Create an account</Link></p>
     </Shell>
   )
@@ -108,12 +126,15 @@ export function Register() {
   const { register: signUp } = useAuth()
   const nav = useNavigate()
   const [error, setError] = useState<unknown>(null)
-  const { register, handleSubmit, watch, setError: setFieldError, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, watch, setValue, setError: setFieldError, formState: { errors, isSubmitting } } =
     useForm<RegisterForm>({ resolver: zodResolver(registerSchema), defaultValues: { role: 'CITIZEN', responderType: 'GENERAL' } })
   const role = watch('role')
   return (
     <Shell title="Create your account" subtitle="Citizens report emergencies. Responders join coordinated response teams.">
-      <form className="space-y-4" onSubmit={handleSubmit(async (v) => {
+      <form className="space-y-4" noValidate onSubmit={(e) => {
+        const f = readFormValues(e.currentTarget, ['fullName', 'email', 'phone', 'password'])
+        for (const k of ['fullName', 'email', 'phone', 'password'] as const) if (f[k] !== undefined) setValue(k, f[k])
+        return handleSubmit(async (v) => {
         setError(null)
         try {
           const u = await signUp({ ...v, phone: v.phone || undefined, responderType: v.role === 'RESPONDER' ? v.responderType : undefined })
@@ -122,7 +143,7 @@ export function Register() {
           if (e instanceof ApiError && e.fieldErrors) Object.entries(e.fieldErrors).forEach(([k, m]) => setFieldError(k as keyof RegisterForm, { message: m }))
           setError(e)
         }
-      })}>
+      })(e)}}>
         <Field label="Full name" htmlFor="fullName" error={errors.fullName?.message}><Input id="fullName" autoComplete="name" {...register('fullName')} /></Field>
         <Field label="E-mail" htmlFor="email" error={errors.email?.message}><Input id="email" type="email" autoComplete="email" {...register('email')} /></Field>
         <Field label="Phone (optional)" htmlFor="phone" error={errors.phone?.message}><Input id="phone" type="tel" autoComplete="tel" {...register('phone')} /></Field>

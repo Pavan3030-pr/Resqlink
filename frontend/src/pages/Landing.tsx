@@ -114,12 +114,12 @@ export default function Landing() {
       <section className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 px-6 pb-20 pt-10 lg:grid-cols-[1.02fr_1fr] lg:pt-16 [&>*]:min-w-0">
         <div>
           <h1 className="font-display text-[40px] font-semibold leading-[1.04] text-ink sm:text-[52px] lg:text-[62px]">Help you can ask for by voice, in large type.</h1>
-          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">ResQLink gives seniors and neighbourhoods one simple place to ask for help, say they are okay, and chat with nearby volunteers in real time, in English, Hindi or Telugu.</p>
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">One platform, two sides. People ask for help, say they are okay, and chat with nearby volunteers in English, Hindi or Telugu. Dispatchers and volunteers get an AI-assisted queue, a live map and a chat room for every incident.</p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link to="/register" className={linkButtonClass({ size: 'lg' })}>Get help or volunteer</Link>
             <Link to="/login" className={linkButtonClass({ size: 'lg', variant: 'secondary' })}>Sign in</Link>
           </div>
-          <p className="mt-4 max-w-lg text-sm text-muted">Reviewing the project? <Link to="/login" className="font-medium text-primary underline-offset-2 hover:underline">Open the demo sign-in</Link> to try citizen, dispatcher, volunteer and admin views with simulated data.</p>
+          <p className="mt-4 max-w-lg text-sm text-muted">Reviewing the project? <Link to="/login" className="font-medium text-primary underline-offset-2 hover:underline">Try the sandbox demo</Link>: citizen, dispatcher, volunteer and admin views with simulated data, no password.</p>
           <TextSizeTry />
         </div>
         <div className="relative">

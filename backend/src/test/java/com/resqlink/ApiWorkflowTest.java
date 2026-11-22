@@ -93,7 +93,7 @@ class ApiWorkflowTest {
 
         // validation
         assertEquals(HttpStatus.BAD_REQUEST, call(HttpMethod.POST, "/incidents", citizen,
-                Map.of("category", "ACCIDENT", "description", "short", "latitude", 17.38, "longitude", 78.48)).getStatusCode());
+                Map.of("category", "ACCIDENT", "description", "ab", "latitude", 17.38, "longitude", 78.48)).getStatusCode());
 
         // 1. citizen reports
         ResponseEntity<Map> created = call(HttpMethod.POST, "/incidents", citizen, Map.of(

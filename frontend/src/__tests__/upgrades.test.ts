@@ -149,3 +149,33 @@ describe('server status', () => {
     f.mockRestore()
   })
 })
+
+import { readFileSync } from 'node:fs'
+import { readFormValues } from '@/lib/forms'
+import { toSandboxRequest } from '@/lib/sandbox'
+
+describe('static emergency page', () => {
+  it('contains every number and first-aid title from the app data (run `node scripts/gen-emergency.mjs` if this fails)', () => {
+    const html = readFileSync('public/emergency.html', 'utf8')
+    EMERGENCY_NUMBERS.forEach((n) => expect(html).toContain(`tel:${n.number}`))
+    FIRST_AID.forEach((c) => { expect(html).toContain(c.title); c.steps.forEach((s) => expect(html).toContain(s.replace(/&/g, '&amp;'))) })
+    expect(html).not.toMatch(/<script/i)
+  })
+})
+
+describe('form helpers', () => {
+  it('reads values that are on screen even when no input event fired', () => {
+    const f = document.createElement('form')
+    f.innerHTML = '<input name="email" value="a@b.co"><input name="password" value="Secret-12345">'
+    expect(readFormValues(f, ['email', 'password', 'missing'])).toEqual({ email: 'a@b.co', password: 'Secret-12345' })
+  })
+})
+
+describe('sandbox request adapter', () => {
+  it('strips the API base, lower-cases headers and flattens multipart fields', async () => {
+    const fd = new FormData(); fd.set('request', JSON.stringify({ category: 'FIRE', latitude: 17.4 })); fd.set('note', 'x')
+    const r = await toSandboxRequest('http://localhost:8080/api/v1/incidents?a=1', { method: 'post', headers: { Authorization: 'Bearer t' }, body: fd })
+    expect(r.method).toBe('POST'); expect(r.url).toBe('/api/v1/incidents?a=1'); expect(r.headers.authorization).toBe('Bearer t')
+    expect(JSON.parse(r.raw)).toEqual({ category: 'FIRE', latitude: 17.4, note: 'x' })
+  })
+})

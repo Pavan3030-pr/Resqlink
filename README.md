@@ -6,6 +6,10 @@
 
 > **Track:** Humanitarian & Social Good — accessible text chat for seniors and communities. Large-font and voice chat, volunteer dispatch rooms, and peer-support check-ins. See [docs/TRACK_FIT.md](docs/TRACK_FIT.md).
 
+## Try it
+- **Sandbox demo, no password:** open the sign-in page and choose a role under "Try it without an account" (simulated data, in your browser).
+- **Verification steps:** [docs/VERIFICATION.md](docs/VERIFICATION.md).
+
 ## Stack
 
 | Layer | Technology |

@@ -191,6 +191,14 @@ for (const [email, paths] of [['dispatcher@resqlink.demo', ['/dispatch', '/dispa
 }
 {
   const br = await launch(); const p = await br.newPage()
+  await p.goto('http://localhost:4173/login', { waitUntil: 'networkidle2' })
+  await clickText(p, 'Dispatcher'); await p.waitForFunction(() => location.pathname.startsWith('/dispatch'), { timeout: 8000 }); await sleep(800)
+  const t = await text(p)
+  ok('sandbox signs in as dispatcher with no password and shows the queue', t.includes('RL-1001'))
+  ok('sandbox banner says the data is simulated', t.includes('Sandbox demo') && t.includes('Simulated data'))
+}
+{
+  const br = await launch(); const p = await br.newPage()
   await p.goto('http://localhost:4173/emergency', { waitUntil: 'networkidle2' })
   const t = await text(p)
   ok('emergency page is public and lists 112, 108 and the senior helpline', t.includes('112') && t.includes('108') && t.includes('14567'))
