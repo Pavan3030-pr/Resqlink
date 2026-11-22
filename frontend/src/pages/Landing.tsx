@@ -1,9 +1,10 @@
-import { ArrowRight, Brain, ClipboardCheck, MessagesSquare, ShieldCheck, Siren, Truck, UserRound } from 'lucide-react'
+import { ArrowRight, Brain, ClipboardCheck, HeartHandshake, MessagesSquare, Mic, ShieldCheck, Siren, Truck, Type, UserRound, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '@/components/ops/BrandMark'
 import { SlaMeter } from '@/components/ops/SlaMeter'
 import { PriorityBadge, StatusBadge } from '@/components/ui/badges'
 import { linkButtonClass } from '@/components/ui/button'
+import { TEXT_SIZES, useA11y } from '@/lib/a11y'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
@@ -14,9 +15,9 @@ const STEPS = [
 ]
 
 const ROLES = [
-  { icon: UserRound, name: 'Citizens', points: ['Report with photo and GPS', 'Plain-language status updates', 'Reports saved offline and sent later'] },
+  { icon: UserRound, name: 'Seniors and citizens', points: ['One-tap SOS and “I am OK” check-in', 'Voice typing and read-aloud', 'Reports saved offline and sent later'] },
   { icon: ClipboardCheck, name: 'Dispatchers', points: ['Priority queue with live wait timers', 'AI analysis, duplicates, next best action', 'Live map, assignment and incident channels'] },
-  { icon: Truck, name: 'Responders', points: ['Accept or decline with a reason', 'Navigate and share arrival updates', 'Opt-in location sharing only'] },
+  { icon: Truck, name: 'Volunteers and responders', points: ['Accept or decline with a reason', 'Check-in board with follow-up log', 'Opt-in location sharing only'] },
   { icon: ShieldCheck, name: 'Administrators', points: ['Verify responders before access', 'Audit log of every action', 'Measured response-time metrics'] },
 ]
 
@@ -52,6 +53,51 @@ function QueuePreview() {
   )
 }
 
+const PILLARS = [
+  { icon: Type, title: 'Large type and voice', text: 'Text up to 150% bigger, stronger contrast, a simple mode with only the main buttons, and a microphone beside every text box in English, Hindi and Telugu. Replies can be read aloud.' },
+  { icon: Users, title: 'Volunteer dispatch rooms', text: 'Every emergency opens its own chat room. A dispatcher brings in the nearest verified volunteer, and everyone sees the same messages, photos and status in real time.' },
+  { icon: HeartHandshake, title: 'Peer-support check-ins', text: 'People who live alone tap “I am OK” on a schedule they choose. Volunteers see who asked for help or went quiet, call them, and log the follow-up.' },
+]
+
+/** What a first-time, older user sees: one big message, a microphone, two honest buttons. Sample content. */
+function AccessPreview() {
+  return (
+    <figure aria-label="Preview of the chat and check-in screens with sample data" className="select-none">
+      <div className="overflow-hidden rounded-panel border border-line bg-surface shadow-hero">
+        <div className="border-b border-line px-5 py-3 text-sm font-semibold text-ink">Volunteer room · Flood near Jubilee Hills</div>
+        <div className="space-y-3 bg-slate-50/70 p-5">
+          <p className="max-w-[85%] rounded-2xl rounded-bl-sm border border-line bg-surface px-4 py-3 text-lg leading-snug text-ink">Meena here. I am a nurse two streets away. I am coming now.</p>
+          <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-3 text-lg leading-snug text-white">Thank you. My husband cannot stand up.</p>
+        </div>
+        <div className="flex items-center gap-3 border-t border-line p-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-critical text-white" aria-hidden><Mic className="h-5 w-5" /></span>
+          <span className="text-base text-muted">Listening… say your message</span>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3" aria-hidden>
+        <span className="flex h-14 items-center justify-center rounded-ctl bg-low text-base font-semibold text-white">I am OK</span>
+        <span className="flex h-14 items-center justify-center rounded-ctl border border-critical-edge bg-surface text-base font-semibold text-critical">I need help</span>
+      </div>
+      <figcaption className="mt-2.5 text-xs text-muted">Sample data. Large type, voice typing and one-tap check-in.</figcaption>
+    </figure>
+  )
+}
+
+function TextSizeTry() {
+  const { settings, update } = useA11y()
+  return (
+    <div className="mt-8 max-w-lg">
+      <p className="mb-2 text-sm font-medium text-ink-2" id="try-size">Try it: make this page easier to read</p>
+      <div role="radiogroup" aria-labelledby="try-size" className="inline-flex overflow-hidden rounded-ctl border border-line-strong bg-surface">
+        {TEXT_SIZES.map((t) => (
+          <button key={t.id} type="button" role="radio" aria-checked={settings.textSize === t.id} onClick={() => update({ textSize: t.id })}
+            className={cn('h-11 border-r border-line px-4 text-sm font-semibold last:border-r-0', settings.textSize === t.id ? 'bg-primary text-white' : 'text-ink hover:bg-surface-2')}>{t.label}</button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
@@ -65,29 +111,35 @@ export default function Landing() {
 
       <section className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 px-6 pb-20 pt-10 lg:grid-cols-[1.02fr_1fr] lg:pt-16 [&>*]:min-w-0">
         <div>
-          <h1 className="font-display text-[40px] font-semibold leading-[1.04] text-ink sm:text-[52px] lg:text-[62px]">From emergency report to coordinated response.</h1>
-          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">Citizens, dispatchers and responders work from one incident record: AI-assisted triage, a live map, and a dedicated Nexconn channel for every incident.</p>
+          <h1 className="font-display text-[40px] font-semibold leading-[1.04] text-ink sm:text-[52px] lg:text-[62px]">Help you can ask for by voice, in large type.</h1>
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">ResQLink gives seniors and neighbourhoods one simple place to ask for help, say they are okay, and chat with nearby volunteers in real time, in English, Hindi or Telugu.</p>
           <div className="mt-9 flex flex-wrap gap-3">
-            <Link to="/register" className={linkButtonClass({ size: 'lg' })}>Report or respond</Link>
-            <Link to="/login" className={linkButtonClass({ size: 'lg', variant: 'secondary' })}>Dispatcher sign in</Link>
+            <Link to="/register" className={linkButtonClass({ size: 'lg' })}>Get help or volunteer</Link>
+            <Link to="/login" className={linkButtonClass({ size: 'lg', variant: 'secondary' })}>Sign in</Link>
           </div>
-          <div className="mt-12 max-w-lg border-t border-line pt-6">
-            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium text-ink">
-              {[['#D92D20', 'Critical'], ['#E8590C', 'High'], ['#C27C05', 'Medium'], ['#1B9A52', 'Low']].map(([c, n]) => (
-                <li key={n} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} aria-hidden />{n}</li>
-              ))}
-            </ul>
-            <p className="mt-3 text-sm leading-relaxed text-muted">Every incident carries a priority and a running wait timer against its target, so the next action is never a guess.</p>
-          </div>
+          <TextSizeTry />
         </div>
         <div className="relative">
           <div className="absolute -inset-4 -z-0 rounded-[28px] bg-primary-soft/70" aria-hidden />
-          <div className="relative"><QueuePreview /></div>
+          <div className="relative"><AccessPreview /></div>
         </div>
       </section>
 
       <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
-        <section aria-labelledby="how">
+        <section aria-labelledby="pillars">
+          <h2 id="pillars" className="font-display text-3xl font-semibold text-ink">Chat that works for people who find chat hard</h2>
+          <div className="mt-8 grid gap-px overflow-hidden rounded-panel border border-line bg-line md:grid-cols-3">
+            {PILLARS.map((p) => (
+              <div key={p.title} className="bg-surface p-6">
+                <p.icon className="h-6 w-6 text-primary" aria-hidden />
+                <h3 className="mt-4 text-lg font-semibold text-ink">{p.title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted">{p.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-20" aria-labelledby="how">
           <h2 id="how" className="font-display text-3xl font-semibold text-ink">How it works</h2>
           <ol className="mt-8 grid border-t border-ink md:grid-cols-4">
             {STEPS.map((s, i) => (
@@ -98,6 +150,14 @@ export default function Landing() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section className="mt-20 grid items-center gap-12 lg:grid-cols-[1fr_1.05fr] [&>*]:min-w-0" aria-labelledby="ops">
+          <div>
+            <h2 id="ops" className="font-display text-3xl font-semibold text-ink">Volunteers see who needs them first</h2>
+            <p className="mt-4 max-w-md text-[17px] leading-relaxed text-muted">Dispatchers get a live queue with wait timers and AI-suggested priority, and volunteers get a check-in board that puts people who asked for help or went quiet at the top. Every decision stays with a person.</p>
+          </div>
+          <div className="relative"><div className="absolute -inset-4 -z-0 rounded-[28px] bg-primary-soft/70" aria-hidden /><div className="relative"><QueuePreview /></div></div>
         </section>
 
         <section className="mt-20" aria-labelledby="roles">

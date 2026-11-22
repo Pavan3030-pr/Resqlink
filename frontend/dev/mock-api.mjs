@@ -65,6 +65,9 @@ function auth(req) {
 const send = (res, code, body) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': '*' }); res.end(body === undefined ? '' : JSON.stringify(body)) }
 const body = (req) => new Promise((r) => { let d = ''; req.on('data', (c) => (d += c)); req.on('end', () => { try { r(JSON.parse(d)) } catch { r({}) } }) })
 
+const checkins = new Map()
+const followed = new Map()
+
 http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204)
   const url = new URL(req.url, 'http://x'); const p = url.pathname.replace('/api/v1', ''); const me = auth(req)
@@ -112,6 +115,26 @@ http.createServer(async (req, res) => {
   if (p === '/chat/contacts') return send(res, 200, responders.map((r) => ({ userId: r.userId, chatUserId: r.chatUserId, fullName: r.fullName, role: 'RESPONDER', responderType: r.responderType })))
   if (p === '/admin/users') return send(res, 200, [...Object.values(users), { id: 8, fullName: 'New Responder', email: 'new@x.io', role: 'RESPONDER', verificationStatus: 'PENDING', chatUserId: 'rl_user_8', createdAt: ago(60) }])
   if (p === '/admin/audit-logs') return send(res, 200, { items: [{ id: 1, actor: 'Dispatcher Asha (demo)', action: 'INCIDENT_STATUS', resourceType: 'INCIDENT', resourceId: '5', details: 'ON_SCENE', createdAt: ago(30) }], page: 0, size: 25, totalElements: 1, totalPages: 1 })
+  if (p === '/check-ins/mine') {
+    const l = checkins.get(me.id) ?? null
+    const due = l ? new Date(new Date(l.createdAt).getTime() + l.intervalHours * 3600e3).toISOString() : null
+    return send(res, 200, { latest: l && { ...l, nextDueAt: due }, intervalHours: l?.intervalHours ?? 24, nextDueAt: due, overdue: !!due && new Date(due) < new Date() })
+  }
+  if (p === '/check-ins' && req.method === 'POST') {
+    const b = await body(req); const h = b.intervalHours ?? 24
+    const c = { id: Date.now() % 100000, status: b.status, note: b.note ?? null, createdAt: new Date().toISOString(), intervalHours: h }
+    checkins.set(me.id, c); return send(res, 201, { ...c, nextDueAt: new Date(Date.now() + h * 3600e3).toISOString() })
+  }
+  if (p === '/check-ins/board') {
+    if (me.role === 'CITIZEN') return send(res, 403, { message: 'Not allowed' })
+    const rows = [
+      { userId: 41, fullName: 'Lakshmi Devi', phone: '+91 90000 00041', latestStatus: 'NEED_HELP', note: 'Out of blood pressure tablets', lastCheckInAt: ago(50), intervalHours: 24, nextDueAt: ago(-1400), overdue: false, needsHelp: true, lastFollowUpAt: null, lastFollowUpBy: null },
+      { userId: 42, fullName: 'Ramesh Rao', phone: '+91 90000 00042', latestStatus: 'OK', note: null, lastCheckInAt: ago(3000), intervalHours: 24, nextDueAt: ago(1560), overdue: true, needsHelp: false, lastFollowUpAt: null, lastFollowUpBy: null },
+      { userId: 43, fullName: 'Fatima Begum', phone: null, latestStatus: 'OK', note: null, lastCheckInAt: ago(120), intervalHours: 24, nextDueAt: ago(-1320), overdue: false, needsHelp: false, lastFollowUpAt: null, lastFollowUpBy: null },
+    ].map((r) => (followed.has(r.userId) ? { ...r, lastFollowUpAt: ago(1), lastFollowUpBy: followed.get(r.userId) } : r))
+    return send(res, 200, rows)
+  }
+  if ((m = p.match(/^\/check-ins\/(\d+)\/follow-up$/)) && req.method === 'POST') { followed.set(Number(m[1]), me.fullName); return send(res, 204) }
   if (p === '/auth/logout' && req.method === 'POST') return send(res, 200, { ok: true })
   if (p === '/analytics/coverage') return send(res, 200, { radiusKm: 10, availableLocated: 2, availableUnlocated: 1, gaps: [{ incidentId: 4, incidentNumber: 'RL-1004', priority: 'MEDIUM', nearestMeters: 14200, reason: 'Nearest available responder is beyond 10 km' }] })
   if (p === '/public/demo-info') return send(res, 200, { demoMode: true, accounts: Object.values(users).map((u) => ({ role: u.role, email: u.email, name: u.fullName })) })

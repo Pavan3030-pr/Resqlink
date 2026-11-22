@@ -60,7 +60,7 @@ export function SosPanel() {
       {!open ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="min-w-0 flex-1 text-[14px] text-critical">{s.hint}</p>
-          <Button variant="urgent" size="xl" onClick={() => { setError(null); setOpen(true) }}><Siren className="h-5 w-5" aria-hidden />{s.button}</Button>
+          <Button variant="urgent" size="xl" className="h-auto min-h-14 w-full whitespace-normal py-3 sm:w-auto" onClick={() => { setError(null); setOpen(true) }}><Siren className="h-5 w-5" aria-hidden />{s.button}</Button>
         </div>
       ) : (
         <div>

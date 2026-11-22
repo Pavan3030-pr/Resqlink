@@ -68,7 +68,54 @@ describe('safety guidance and quick replies', () => {
   it('gives roles the right shortcuts and citizens none', () => {
     expect(quickRepliesFor('RESPONDER')).toContain('Arrived on scene')
     expect(quickRepliesFor('DISPATCHER')).toContain('Backup is being sent')
-    expect(quickRepliesFor('CITIZEN')).toEqual([])
+    expect(quickRepliesFor('CITIZEN')).toContain('I need help')
     expect(quickRepliesFor(undefined)).toEqual([])
+  })
+})
+
+import { parseA11y, rootFontPercent } from '@/lib/a11y'
+import { appendTranscript, listenErrorMessage, speakableText } from '@/lib/voice'
+import { dueLabel, groupOf, sortBoard, type BoardRow } from '@/lib/checkin'
+
+describe('reader settings', () => {
+  it('falls back to defaults for missing, corrupt or unknown values', () => {
+    expect(parseA11y(null)).toEqual({ textSize: 'normal', contrast: false, simple: false })
+    expect(parseA11y('{not json')).toEqual({ textSize: 'normal', contrast: false, simple: false })
+    expect(parseA11y('{"textSize":"huge","contrast":"yes","simple":1}')).toEqual({ textSize: 'normal', contrast: false, simple: false })
+  })
+  it('round-trips valid settings and maps sizes to root font percentages', () => {
+    expect(parseA11y('{"textSize":"xlarge","contrast":true,"simple":true}')).toEqual({ textSize: 'xlarge', contrast: true, simple: true })
+    expect([rootFontPercent('normal'), rootFontPercent('large'), rootFontPercent('xlarge')]).toEqual([100, 125, 150])
+  })
+})
+
+describe('voice helpers', () => {
+  it('appends dictated text with single spaces', () => {
+    expect(appendTranscript('', '  my leg  hurts ')).toBe('my leg hurts')
+    expect(appendTranscript('Fell down. ', 'cannot stand')).toBe('Fell down. cannot stand')
+    expect(appendTranscript('abc', '   ')).toBe('abc')
+  })
+  it('explains recognition errors in plain words and stays quiet on user-initiated stops', () => {
+    expect(listenErrorMessage('not-allowed')).toMatch(/blocked/)
+    expect(listenErrorMessage('network')).toMatch(/internet/)
+    expect(listenErrorMessage('aborted')).toBe('')
+  })
+  it('removes links and markdown before reading aloud', () => {
+    expect(speakableText('**Stay calm.** See https://example.com/x now')).toBe('Stay calm. See link now')
+  })
+})
+
+describe('check-in board', () => {
+  const row = (o: Partial<BoardRow>): BoardRow => ({ userId: 1, fullName: 'A', phone: null, latestStatus: 'OK', note: null, lastCheckInAt: '2026-01-01T00:00:00Z', intervalHours: 24, nextDueAt: '2026-01-02T00:00:00Z', overdue: false, needsHelp: false, lastFollowUpAt: null, lastFollowUpBy: null, ...o })
+  it('groups by urgency and sorts help, then overdue, then the rest', () => {
+    const ok = row({ userId: 1 }), late = row({ userId: 2, overdue: true }), help = row({ userId: 3, needsHelp: true, latestStatus: 'NEED_HELP' })
+    expect(groupOf(help)).toBe('help'); expect(groupOf(late)).toBe('overdue'); expect(groupOf(ok)).toBe('ok')
+    expect(sortBoard([ok, late, help]).map((r) => r.userId)).toEqual([3, 2, 1])
+  })
+  it('describes due times in both directions', () => {
+    const now = new Date('2026-01-01T12:00:00Z')
+    expect(dueLabel('2026-01-01T15:00:00Z', now)).toBe('due in 3 h')
+    expect(dueLabel('2026-01-01T11:30:00Z', now)).toBe('30 min overdue')
+    expect(dueLabel('2025-12-29T12:00:00Z', now)).toBe('3 days overdue')
   })
 })

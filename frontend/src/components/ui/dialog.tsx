@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 const FOCUSABLE = 'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
@@ -25,8 +26,9 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
     return () => { window.removeEventListener('keydown', h); opener?.focus?.() }
   }, [open, onClose])
   if (!open) return null
-  return (
-    <div className="rl-fade fixed inset-0 z-[1500] flex items-end justify-center bg-ink/50 sm:items-center sm:p-4" onClick={onClose}>
+  // Portalled to <body>: an ancestor with backdrop-filter/transform (the sticky header) would otherwise become the containing block for `fixed`.
+  return createPortal(
+    <div className="rl-fade fixed inset-0 z-[2100] flex items-end justify-center bg-ink/50 sm:items-center sm:p-4" onClick={onClose}>
       <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}
         className="rl-rise max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-surface shadow-overlay sm:max-w-lg sm:rounded-panel">
         <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
@@ -35,6 +37,7 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
         </div>
         <div className="p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

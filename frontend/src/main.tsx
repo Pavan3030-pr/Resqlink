@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ToastProvider } from './components/ui/toast'
+import { A11yProvider } from './lib/a11y'
 import { AuthProvider } from './lib/auth'
 import { I18nProvider } from './lib/i18n'
 import './index.css'
@@ -18,11 +19,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ToastProvider>
-          <I18nProvider>
-            <AuthProvider>
-              <App />
-            </AuthProvider>
-          </I18nProvider>
+          <A11yProvider>
+            <I18nProvider>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </I18nProvider>
+          </A11yProvider>
         </ToastProvider>
       </BrowserRouter>
     </QueryClientProvider>

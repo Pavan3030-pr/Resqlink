@@ -4,6 +4,8 @@
 
 > Prototype for the Nexconn Build Challenge 2026. Not a replacement for official emergency services. Demo accounts and responder positions are simulated and labelled `(demo)`.
 
+> **Track:** Humanitarian & Social Good — accessible text chat for seniors and communities. Large-font and voice chat, volunteer dispatch rooms, and peer-support check-ins. See [docs/TRACK_FIT.md](docs/TRACK_FIT.md).
+
 ## Stack
 
 | Layer | Technology |

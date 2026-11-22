@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Disclosure } from '@/components/ui/disclosure'
 import { Field, Input, Textarea } from '@/components/ui/fields'
 import { ErrorNote } from '@/components/ui/misc'
+import { MicButton } from '@/components/VoiceButtons'
 import { useToast } from '@/components/ui/toast'
 import { api, ApiError } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -51,6 +52,7 @@ export default function ReportForm() {
     resolver: zodResolver(reportSchema),
     defaultValues: { category: 'ACCIDENT', latitude: undefined, longitude: undefined },
   })
+  const description = watch('description')
   const lat = watch('latitude')
   const lng = watch('longitude')
   const accuracy = watch('locationAccuracyMeters')
@@ -150,6 +152,10 @@ export default function ReportForm() {
             <Field label={t('description')} htmlFor="description" error={errors.description?.message} hint={t('descriptionHint')}>
               <Textarea id="description" className="min-h-[132px] text-base" {...register('description')} />
             </Field>
+            <div className="-mt-3 flex items-center gap-3">
+              <MicButton size="lg" value={description ?? ''} onChange={(v) => setValue('description', v, { shouldValidate: true, shouldDirty: true })} />
+              <span className="text-sm text-muted">Tap the microphone and say what happened.</span>
+            </div>
             <PhotoPicker image={image} preview={preview} busy={imageBusy} error={imageError} onFile={(f) => void onImage(f)} onRemove={removeImage} />
             <Disclosure title={t('optionalDetails')} open={contactErrors ? true : undefined} className="rounded-panel border border-line bg-surface px-4">
               <div className="space-y-4 pb-3 pt-1">

@@ -5,7 +5,7 @@ export const QUICK_REPLIES: Record<Role, string[]> = {
   RESPONDER: ['On my way', 'ETA 5 minutes', 'Arrived on scene', 'Need an additional ambulance', 'Need fire support', 'Area is not safe, holding back'],
   DISPATCHER: ['Please confirm your ETA', 'Update on patient condition?', 'Backup is being sent', 'Stay on this channel for updates'],
   ADMIN: ['Please confirm your ETA', 'Update on patient condition?'],
-  CITIZEN: [],
+  CITIZEN: ['I am safe now', 'I need help', 'Please call me', 'I cannot talk, please send someone'],
 }
 
 export function quickRepliesFor(role: Role | undefined): string[] {

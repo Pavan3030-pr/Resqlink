@@ -56,3 +56,11 @@
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .rl-skeleton { background: #E6EBF2; }
 }
+
+/* ---- Reader comfort (see lib/a11y.tsx) ---- */
+html[data-contrast='high'] .text-muted, html[data-contrast='high'] .text-ink-2 { color: #0B1626; }
+html[data-contrast='high'] .border-line, html[data-contrast='high'] .border-line-strong { border-color: #3B4658; }
+html[data-contrast='high'] .shadow-card, html[data-contrast='high'] .shadow-raised { box-shadow: 0 0 0 1px #3B4658; }
+html[data-contrast='high'] :focus-visible { outline-width: 3px; }
+/* Simple mode: anything marked data-advanced is hidden. Chat, SOS, check-in and reporting never carry the marker. */
+html[data-simple='on'] [data-advanced] { display: none !important; }

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { AccessibilityMenu } from './components/AccessibilityMenu'
 import { Layout } from './components/Layout'
 import { PageSpinner } from './components/ui/misc'
 import { homePathFor, useAuth } from './lib/auth'
@@ -8,6 +9,7 @@ import type { Role } from './lib/types'
 const AdminActivity = lazy(() => import('./pages/admin/Activity'))
 const AdminAudit = lazy(() => import('./pages/admin/Audit'))
 const AdminUsers = lazy(() => import('./pages/admin/Users'))
+const CheckInBoard = lazy(() => import('./pages/staff/CheckInBoard'))
 const CitizenDashboard = lazy(() => import('./pages/citizen/Dashboard'))
 const ReportForm = lazy(() => import('./pages/citizen/ReportForm'))
 const Communication = lazy(() => import('./pages/Communication'))
@@ -36,7 +38,8 @@ function Public({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return <PageSpinner />
   if (user) return <Navigate to={homePathFor(user.role)} replace />
-  return <>{children}</>
+  // Reader settings must be reachable before sign-in: the people who need them most meet the login page first.
+  return <>{children}<AccessibilityMenu floating /></>
 }
 
 const STAFF: Role[] = ['DISPATCHER', 'ADMIN']
@@ -66,6 +69,7 @@ export default function App() {
         <Route path="/admin/activity" element={<Guard roles={['ADMIN']}><AdminActivity /></Guard>} />
         <Route path="/admin/audit" element={<Guard roles={['ADMIN']}><AdminAudit /></Guard>} />
 
+        <Route path="/check-ins" element={<Guard roles={['DISPATCHER', 'ADMIN', 'RESPONDER']}><CheckInBoard /></Guard>} />
         <Route path="/demo" element={<DemoGuide />} />
         <Route path="/incidents/:id" element={<IncidentDetailPage />} />
         <Route path="/chat" element={<Guard roles={['DISPATCHER', 'RESPONDER', 'ADMIN']}><Communication /></Guard>} />

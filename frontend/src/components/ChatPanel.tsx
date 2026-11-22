@@ -1,6 +1,7 @@
 import { FileText, Loader2, Paperclip, Send } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { MicButton, SpeakButton } from '@/components/VoiceButtons'
 import { useAuth } from '@/lib/auth'
 import { quickRepliesFor } from '@/lib/quickReplies'
 import { chat, type ChannelRef, type ChatMessage, type LinkState } from '@/lib/nexconn'
@@ -107,6 +108,7 @@ export function ChatPanel({ channel, title, names, height = 420, onMessages }: {
             {!m.mine && <span className="mb-0.5 text-[11px] text-muted">{names?.[m.senderId] ?? 'Participant'}</span>}
             <div className={cn('max-w-[80%] rounded-2xl px-3.5 py-2 text-sm', m.mine ? 'rounded-br-sm bg-primary text-white' : 'rounded-bl-sm border border-line bg-surface')}>
               {m.kind === 'text' && <p className="whitespace-pre-wrap break-words">{m.text}</p>}
+              {m.kind === 'text' && !m.mine && m.text && <SpeakButton text={m.text} className={cn('-ml-2 mt-1')} />}
               {m.kind === 'image' && m.url && <a href={m.url} target="_blank" rel="noreferrer noopener"><img src={m.url} alt="Shared" className="max-h-52 rounded-lg" /></a>}
               {m.kind === 'file' && (
                 <a href={m.url} target="_blank" rel="noreferrer noopener" className="flex items-center gap-2 underline"><FileText className="h-4 w-4" />{m.name ?? 'File'}</a>
@@ -130,6 +132,7 @@ export function ChatPanel({ channel, title, names, height = 420, onMessages }: {
       <form className="flex items-end gap-2 border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); void send() }}>
         <input ref={fileRef} type="file" className="hidden" onChange={(e) => void sendFile(e.target.files?.[0])} aria-label="Attach file" />
         <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()} disabled={sending || link !== 'connected'} aria-label="Attach file"><Paperclip className="h-4 w-4" /></Button>
+        <MicButton value={text} onChange={setText} onError={setError} />
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} maxLength={2000} placeholder="Write a message…" aria-label="Message"
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send() } }}
           className="max-h-28 min-h-9 flex-1 resize-none rounded-lg border border-line px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />

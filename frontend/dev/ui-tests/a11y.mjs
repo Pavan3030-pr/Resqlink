@@ -4,7 +4,7 @@ import { launch } from './browser.mjs'
 const axeSrc = fs.readFileSync('node_modules/axe-core/axe.min.js', 'utf8')
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const targets = [
-  ['dispatcher@resqlink.demo', ['/dispatch', '/dispatch/incidents', '/incidents/1', '/incidents/5', '/dispatch/responders', '/dispatch/analytics', '/dispatch/map', '/chat', '/demo']],
+  ['dispatcher@resqlink.demo', ['/dispatch', '/dispatch/incidents', '/incidents/1', '/incidents/5', '/dispatch/responders', '/dispatch/analytics', '/dispatch/map', '/check-ins', '/chat', '/demo']],
   ['citizen@resqlink.demo', ['/citizen', '/citizen/report', '/incidents/1']],
   ['ambulance1@resqlink.demo', ['/responder', '/incidents/5']],
   ['admin@resqlink.demo', ['/admin/users', '/admin/audit', '/admin/activity']],

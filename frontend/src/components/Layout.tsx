@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   BarChart3, ClipboardList, Ellipsis, LayoutDashboard, LogOut, Map as MapIcon, MessageSquare, PlusCircle,
-  ScrollText, ShieldCheck, Truck, Users,
+  HeartHandshake, ScrollText, ShieldCheck, Truck, Users,
 } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { ChatBootstrap } from './ChatBootstrap'
@@ -11,6 +11,7 @@ import { StaffAlerts } from './StaffAlerts'
 import { QueueSync } from './QueueSync'
 import { ErrorBoundary } from './ErrorBoundary'
 import { FreshnessBadge } from './FreshnessBadge'
+import { AccessibilityMenu } from './AccessibilityMenu'
 import { BrandMark } from './ops/BrandMark'
 import { Dialog } from './ui/dialog'
 import { LiveDot } from './ui/live'
@@ -35,6 +36,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: '/dispatch/map', label: 'Live map', icon: MapIcon },
     { to: '/dispatch/incidents', label: 'Incidents', icon: ClipboardList },
     { to: '/dispatch/responders', label: 'Responders', icon: Truck },
+    { to: '/check-ins', label: 'Check-ins', icon: HeartHandshake },
     { to: '/chat', label: 'Communication', icon: MessageSquare },
     { to: '/dispatch/analytics', label: 'Reports', icon: BarChart3 },
   ],
@@ -42,6 +44,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: '/responder', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/responder/assignments', label: 'Assignments', icon: ClipboardList },
     { to: '/responder/map', label: 'Map', icon: MapIcon },
+    { to: '/check-ins', label: 'Check-ins', icon: HeartHandshake },
     { to: '/chat', label: 'Team chat', icon: MessageSquare },
   ],
   ADMIN: [
@@ -52,6 +55,7 @@ const NAV: Record<Role, NavItem[]> = {
     { to: '/dispatch/map', label: 'Live map', icon: MapIcon },
     { to: '/dispatch/incidents', label: 'Incidents', icon: ClipboardList },
     { to: '/dispatch/responders', label: 'Responders', icon: Truck },
+    { to: '/check-ins', label: 'Check-ins', icon: HeartHandshake },
     { to: '/chat', label: 'Communication', icon: MessageSquare },
   ],
 }
@@ -127,12 +131,13 @@ export function Layout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-[800] flex h-14 items-center justify-between gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-[800] flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line bg-surface/95 px-4 py-1.5 backdrop-blur md:px-6">
           <div className="flex min-w-0 items-center gap-2.5">
             <span className="md:hidden"><BrandMark className="h-7 w-7" /></span>
             <span className="truncate text-[13px] text-muted"><span className="font-medium text-ink-2">{role} workspace</span>{demo ? <span className="hidden sm:inline"> · demonstration data</span> : ''}</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+            <AccessibilityMenu />
             {user.role === 'CITIZEN' && (
               <select aria-label="Language" value={lang} onChange={(e) => setLang(e.target.value as typeof lang)} className="h-8 rounded-ctl border border-line-strong bg-surface px-2 text-sm">
                 {LANGS.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}

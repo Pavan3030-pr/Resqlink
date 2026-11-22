@@ -153,6 +153,47 @@ for (const [email, paths] of [['dispatcher@resqlink.demo', ['/dispatch', '/dispa
     ok(`no horizontal overflow on phones: ${email.split('@')[0]} ${path}`, !(await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)))
   }
 }
+// --- humanitarian track: check-in, reader settings, simple mode, volunteer board
+{
+  const { p, errs } = await session('citizen@resqlink.demo')
+  await p.goto('http://localhost:4173/citizen', { waitUntil: 'networkidle2' })
+  let t = await text(p)
+  ok('citizen home offers the daily check-in', t.includes('Daily check-in') && t.includes('I am OK') && t.includes('I need help'))
+  await clickText(p, 'I am OK'); await sleep(900)
+  t = await text(p)
+  ok('check-in is confirmed and the next due time is shown', t.includes('You checked in') && /Next one due in/.test(t))
+  await clickText(p, 'Easier to read'); await sleep(300)
+  await clickText(p, 'Extra large'); await sleep(200)
+  ok('extra large text scales the whole page (root font size 150%)', (await p.evaluate(() => getComputedStyle(document.documentElement).fontSize)) === '24px')
+  await clickText(p, 'Simple mode'); await sleep(200)
+  await clickText(p, 'Done'); await sleep(300)
+  t = await text(p)
+  ok('simple mode hides the report history but keeps SOS and check-in', !t.includes('No reports yet') && !t.includes('RL-100') && t.includes('SOS') && t.includes('Daily check-in'))
+  await p.screenshot({ path: `${SHOTS}/citizen-simple-xl.png`, fullPage: true })
+  await p.reload({ waitUntil: 'networkidle2' }); await sleep(500)
+  ok('reader settings survive a reload', (await p.evaluate(() => document.documentElement.dataset.simple)) === 'on' && (await p.evaluate(() => getComputedStyle(document.documentElement).fontSize)) === '24px')
+  await p.setViewport({ width: 390, height: 844 }); await sleep(300)
+  ok('no horizontal overflow at 150% text on a phone', !(await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)))
+  ok('citizen home has no script errors', errs.length === 0 || (console.log(errs), false))
+}
+{
+  const { p } = await session('dispatcher@resqlink.demo')
+  await p.goto('http://localhost:4173/check-ins', { waitUntil: 'networkidle2' }); await sleep(700)
+  let t = await text(p)
+  ok('board puts the person who asked for help first', t.includes('Asked for help') && t.indexOf('Lakshmi Devi') < t.indexOf('Ramesh Rao'))
+  ok('board separates missed check-ins from people who are fine', t.includes('Missed a check-in') && t.includes('Checked in') && t.includes('Fatima Begum'))
+  await clickText(p, 'Log follow-up'); await sleep(300)
+  await p.type('textarea', 'Spoke on the phone, medicine arranged.')
+  await clickText(p, 'Save follow-up'); await sleep(900)
+  t = await text(p)
+  ok('follow-up is recorded and visible to other volunteers', t.includes('Followed up by Dispatcher Asha'))
+  await p.screenshot({ path: `${SHOTS}/checkin-board.png`, fullPage: true })
+}
+{
+  const br = await launch(); const p = await br.newPage()
+  await p.goto('http://localhost:4173/login', { waitUntil: 'networkidle2' })
+  ok('reader settings are reachable before signing in', (await text(p)).includes('Easier to read'))
+}
 {
   const { p } = await session('citizen@resqlink.demo')
   await p.goto('http://localhost:4173/dispatch', { waitUntil: 'networkidle2' })

@@ -5,7 +5,9 @@ import { linkButtonClass } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState, ErrorState, PageHeader } from '@/components/ui/misc'
 import { ListSkeleton } from '@/components/ui/skeleton'
+import { CheckInCard } from '@/components/CheckInCard'
 import { SosPanel } from '@/components/SosPanel'
+import { useAuth } from '@/lib/auth'
 import { usePendingReports } from '@/components/QueueSync'
 import { api } from '@/lib/api'
 import { CATEGORY_LABEL, timeAgo } from '@/lib/format'
@@ -42,14 +44,17 @@ function ReportRow({ i }: { i: IncidentSummary }) {
 
 export default function CitizenDashboard() {
   const { t } = useI18n()
+  const { user } = useAuth()
+  const first = user?.fullName.split(' ')[0]
   const pending = usePendingReports()
   const q = useQuery({ queryKey: ['incidents', 'mine'], queryFn: () => api.get<Page<IncidentSummary>>('/incidents', { size: 50 }), refetchInterval: 15_000 })
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t('myReports')} subtitle="Track the status of emergencies you have reported."
+      <PageHeader title={first ? `Hello, ${first}` : t('myReports')} subtitle="Get help fast, tell people you are okay, or report an emergency."
         actions={<Link to="/citizen/report" className={cn(linkButtonClass({ size: 'lg' }), 'hidden sm:inline-flex')}><Plus className="h-5 w-5" aria-hidden />{t('reportTitle')}</Link>} />
       <SosPanel />
-      <p role="note" className="mb-5 rounded-panel border border-medium-edge bg-medium-tint px-4 py-3 text-[13px] leading-relaxed text-medium">{t('emergencyNotice')}</p>
+      <div className="mb-5"><CheckInCard /></div>
+      <p data-advanced role="note" className="mb-5 rounded-panel border border-medium-edge bg-medium-tint px-4 py-3 text-[13px] leading-relaxed text-medium">{t('emergencyNotice')}</p>
       {pending.length > 0 && (
         <Card className="mb-5" tone="warn">
           <CardHeader className="bg-medium-tint/60"><CardTitle className="flex items-center gap-2 text-medium"><Clock className="h-4 w-4" aria-hidden />{t('waitingToSend')} ({pending.length})</CardTitle><span className="text-xs text-medium">Will be submitted automatically when you are online</span></CardHeader>
@@ -61,7 +66,8 @@ export default function CitizenDashboard() {
           ))}
         </Card>
       )}
-      <Card elevation="raised">
+      <h2 data-advanced className="mb-2 font-display text-lg font-semibold text-ink">{t('myReports')}</h2>
+      <Card data-advanced elevation="raised">
         {q.isLoading ? <ListSkeleton rows={3} /> : q.error ? <ErrorState title="Could not load your reports" error={q.error} onRetry={() => q.refetch()} />
           : q.data!.items.length === 0 ? <EmptyState icon={ClipboardList} title="No reports yet" hint="When you report an emergency it appears here with live status updates." action={<Link to="/citizen/report" className={linkButtonClass({ size: 'lg' })}>{t('reportTitle')}</Link>} />
           : q.data!.items.map((i) => <ReportRow key={i.id} i={i} />)}
