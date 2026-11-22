@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Field, Input, Select } from '@/components/ui/fields'
 import { ErrorNote } from '@/components/ui/misc'
+import { PasswordInput } from '@/components/PasswordInput'
+import { ServerStatus } from '@/components/ServerStatus'
 import { ApiError } from '@/lib/api'
 import { homePathFor, useAuth } from '@/lib/auth'
 import { BrandMark } from '@/components/ops/BrandMark'
@@ -57,6 +59,11 @@ export function Login() {
   const nav = useNavigate()
   const [error, setError] = useState<unknown>(null)
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) })
+  const demoPassword = (import.meta.env.VITE_DEMO_PASSWORD as string | undefined) || ''
+  async function enterAs(email: string) {
+    setError(null)
+    try { nav(homePathFor((await login(email, demoPassword)).role), { replace: true }) } catch (e) { setError(e) }
+  }
   const demo = useQuery({ queryKey: ['demo-info'], queryFn: () => apiClient.get<DemoInfo>('/public/demo-info'), enabled: import.meta.env.VITE_DEMO_MODE === 'true', retry: 0 })
   return (
     <Shell title="Sign in" subtitle="Access your ResQLink workspace.">
@@ -65,16 +72,17 @@ export function Login() {
         try { nav(homePathFor((await login(v.email, v.password)).role), { replace: true }) } catch (e) { setError(e) }
       })}>
         <Field label="E-mail" htmlFor="email" error={errors.email?.message}><Input id="email" type="email" autoComplete="email" {...register('email')} /></Field>
-        <Field label="Password" htmlFor="password" error={errors.password?.message}><Input id="password" type="password" autoComplete="current-password" {...register('password')} /></Field>
+        <Field label="Password" htmlFor="password" error={errors.password?.message}><PasswordInput id="password" autoComplete="current-password" {...register('password')} /></Field>
         <ErrorNote error={error} />
+        <ServerStatus quietWhenOnline />
         <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>{isSubmitting ? 'Signing in…' : 'Sign in'}</Button>
       </form>
       {demo.data?.demoMode && (
         <div className="mt-5 rounded-panel border border-line bg-surface-2 p-3 text-sm">
           <p className="font-medium">Demonstration accounts</p>
-          <p className="mb-2 text-xs text-muted">Simulated data. Pick a role to fill the e-mail; the password is in the submission document.</p>
+          <p className="mb-2 text-xs text-muted">{demoPassword ? 'Simulated data. Tap a role to sign in at once.' : 'Simulated data. Pick a role to fill the e-mail; the password is in the submission document.'}</p>
           <div className="flex flex-wrap gap-1.5">{demo.data.accounts?.map((a) => (
-            <button key={a.email} type="button" onClick={() => setValue('email', a.email, { shouldValidate: true })} className="h-8 rounded-full border border-line-strong bg-surface px-3 text-xs font-medium hover:bg-primary-soft">{a.role.charAt(0) + a.role.slice(1).toLowerCase()}: {a.email.split('@')[0]}</button>
+            <button key={a.email} type="button" onClick={() => (demoPassword ? void enterAs(a.email) : setValue('email', a.email, { shouldValidate: true }))} className="h-8 rounded-full border border-line-strong bg-surface px-3 text-xs font-medium hover:bg-primary-soft">{a.role.charAt(0) + a.role.slice(1).toLowerCase()}: {a.email.split('@')[0]}</button>
           ))}</div>
         </div>
       )}
@@ -118,7 +126,7 @@ export function Register() {
         <Field label="Full name" htmlFor="fullName" error={errors.fullName?.message}><Input id="fullName" autoComplete="name" {...register('fullName')} /></Field>
         <Field label="E-mail" htmlFor="email" error={errors.email?.message}><Input id="email" type="email" autoComplete="email" {...register('email')} /></Field>
         <Field label="Phone (optional)" htmlFor="phone" error={errors.phone?.message}><Input id="phone" type="tel" autoComplete="tel" {...register('phone')} /></Field>
-        <Field label="Password" htmlFor="password" error={errors.password?.message} hint="At least 10 characters, mixing three of: lowercase, uppercase, digits, symbols"><Input id="password" type="password" autoComplete="new-password" {...register('password')} /></Field>
+        <Field label="Password" htmlFor="password" error={errors.password?.message} hint="At least 10 characters, mixing three of: lowercase, uppercase, digits, symbols"><PasswordInput id="password" autoComplete="new-password" {...register('password')} /></Field>
         <Field label="I am a" htmlFor="role">
           <Select id="role" {...register('role')}><option value="CITIZEN">Citizen (report emergencies)</option><option value="RESPONDER">Responder (needs admin verification)</option></Select>
         </Field>
@@ -128,6 +136,7 @@ export function Register() {
           </Field>
         )}
         <ErrorNote error={error} />
+        <ServerStatus quietWhenOnline />
         <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>{isSubmitting ? 'Creating account…' : 'Create account'}</Button>
       </form>
       <p className="mt-5 text-center text-sm text-muted">Already registered? <Link className="font-medium text-primary" to="/login">Sign in</Link></p>

@@ -71,6 +71,7 @@ const followed = new Map()
 http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204)
   const url = new URL(req.url, 'http://x'); const p = url.pathname.replace('/api/v1', ''); const me = auth(req)
+  if (p === '/actuator/health') return send(res, 200, { status: 'UP' })
   if (p === '/auth/login' && req.method === 'POST') {
     const b = await body(req); const u = Object.values(users).find((x) => x.email === b.email)
     return u ? send(res, 200, { token: u.email, user: u }) : send(res, 401, { message: 'Invalid e-mail or password' })

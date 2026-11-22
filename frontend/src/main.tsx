@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ToastProvider } from './components/ui/toast'
 import { A11yProvider } from './lib/a11y'
+import { pingServer } from './lib/serverStatus'
 import { AuthProvider } from './lib/auth'
 import { I18nProvider } from './lib/i18n'
 import './index.css'
@@ -36,3 +37,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => { /* optional enhancement */ }) })
 }
+
+// Wake a sleeping free-tier server while the page loads, so sign-in is not the first request to wait for it.
+void pingServer(10_000)

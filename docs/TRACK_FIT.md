@@ -6,6 +6,8 @@
 | Volunteer dispatch rooms | Every incident has its own real-time Nexconn room. Dispatchers bring in verified volunteers. Citizens get one-tap quick replies ("I need help", "Please call me"). | `components/ChatPanel.tsx`, `lib/quickReplies.ts` |
 | Peer-support check-ins | "I am OK" / "I need help" on a schedule (12 h to 3 days). Volunteers get a board: asked for help, missed a check-in, fine. Follow-ups are logged and audited. | `components/CheckInCard.tsx`, `pages/staff/CheckInBoard.tsx`, backend `CheckInService`, `CheckInController`, migration `V3__check_ins.sql` |
 
+| Works offline and when the server sleeps | Public `/emergency` page (numbers 112, 108, 101, 100, 1091, 1098, 14567 and five first-aid cards) is bundled with the app. An offline banner explains what still works. A server badge says "waking up" instead of failing while the free-tier backend starts. | `pages/EmergencyHelp.tsx`, `lib/emergency.ts`, `components/ConnectionBanner.tsx`, `components/ServerStatus.tsx` |
+
 ## Privacy
 Only the person's own check-ins and the volunteer/dispatcher/admin board expose name and phone. Citizens cannot read the board (403). Follow-ups are written to the audit log. Voice typing uses the browser's speech service; ResQLink stores only the text.
 

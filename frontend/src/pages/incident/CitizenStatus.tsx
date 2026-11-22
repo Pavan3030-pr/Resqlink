@@ -46,6 +46,8 @@ export function CitizenStatus({ d }: { d: IncidentDetail }) {
         </div>
       </Card>
 
+      <p className="rounded-panel border border-line bg-surface px-4 py-3 text-sm leading-relaxed text-ink-2">A dispatcher reads every report. Software may suggest a priority, but only a person decides who is sent, and if the AI service is down a simpler rule-based check is used and clearly marked for the dispatcher.</p>
+
       {!done && s !== 'REJECTED' && s !== 'DUPLICATE' && s !== 'CLOSED' && <SafetyCard category={d.summary.category} />}
 
       <Card>

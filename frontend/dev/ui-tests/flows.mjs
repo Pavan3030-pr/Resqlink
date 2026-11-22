@@ -191,6 +191,17 @@ for (const [email, paths] of [['dispatcher@resqlink.demo', ['/dispatch', '/dispa
 }
 {
   const br = await launch(); const p = await br.newPage()
+  await p.goto('http://localhost:4173/emergency', { waitUntil: 'networkidle2' })
+  const t = await text(p)
+  ok('emergency page is public and lists 112, 108 and the senior helpline', t.includes('112') && t.includes('108') && t.includes('14567'))
+  ok('first-aid cards are present', t.includes('Heavy bleeding') && t.includes('Choking adult'))
+  await p.goto('http://localhost:4173/login', { waitUntil: 'networkidle2' })
+  await p.type('#password', 'abc12345')
+  await p.click('button[aria-label="Show password"]')
+  ok('show password reveals the typed text', (await p.$eval('#password', (e) => e.type)) === 'text')
+}
+{
+  const br = await launch(); const p = await br.newPage()
   await p.goto('http://localhost:4173/login', { waitUntil: 'networkidle2' })
   ok('reader settings are reachable before signing in', (await text(p)).includes('Easier to read'))
 }

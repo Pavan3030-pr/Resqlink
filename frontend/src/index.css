@@ -64,3 +64,7 @@ html[data-contrast='high'] .shadow-card, html[data-contrast='high'] .shadow-rais
 html[data-contrast='high'] :focus-visible { outline-width: 3px; }
 /* Simple mode: anything marked data-advanced is hidden. Chat, SOS, check-in and reporting never carry the marker. */
 html[data-simple='on'] [data-advanced] { display: none !important; }
+
+@keyframes rl-soft { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.rl-ping-soft { animation: rl-soft 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .rl-ping-soft, .rl-ping { animation: none; } }

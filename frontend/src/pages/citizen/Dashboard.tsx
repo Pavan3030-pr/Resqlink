@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ChevronRight, ClipboardList, Clock, Plus } from 'lucide-react'
+import { ArrowRight, ChevronRight, ClipboardList, Clock, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { linkButtonClass } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
@@ -54,6 +54,9 @@ export default function CitizenDashboard() {
         actions={<Link to="/citizen/report" className={cn(linkButtonClass({ size: 'lg' }), 'hidden sm:inline-flex')}><Plus className="h-5 w-5" aria-hidden />{t('reportTitle')}</Link>} />
       <SosPanel />
       <div className="mb-5"><CheckInCard /></div>
+      <Link to="/emergency" className="mb-5 flex items-center justify-between gap-3 rounded-panel border border-line-strong bg-surface p-4 text-[15px] font-medium text-ink shadow-card hover:bg-surface-2">
+        <span>Emergency numbers and first-aid steps<span className="block text-sm font-normal text-muted">Works without internet</span></span><ArrowRight className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+      </Link>
       <p data-advanced role="note" className="mb-5 rounded-panel border border-medium-edge bg-medium-tint px-4 py-3 text-[13px] leading-relaxed text-medium">{t('emergencyNotice')}</p>
       {pending.length > 0 && (
         <Card className="mb-5" tone="warn">

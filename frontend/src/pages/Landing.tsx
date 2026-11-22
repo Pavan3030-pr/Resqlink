@@ -4,6 +4,7 @@ import { BrandMark } from '@/components/ops/BrandMark'
 import { SlaMeter } from '@/components/ops/SlaMeter'
 import { PriorityBadge, StatusBadge } from '@/components/ui/badges'
 import { linkButtonClass } from '@/components/ui/button'
+import { ServerStatus } from '@/components/ServerStatus'
 import { TEXT_SIZES, useA11y } from '@/lib/a11y'
 import { cn } from '@/lib/utils'
 
@@ -101,9 +102,10 @@ function TextSizeTry() {
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-2 px-6 py-5">
         <div className="flex items-center gap-2.5"><BrandMark className="h-9 w-9" /><span className="font-display text-xl font-semibold text-ink">ResQLink</span></div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+          <Link to="/emergency" className="inline-flex h-10 items-center rounded-ctl px-3 text-sm font-medium text-critical hover:bg-critical-tint">Emergency help</Link>
           <Link to="/login" className="inline-flex h-10 items-center rounded-ctl px-4 text-sm font-medium text-ink-2 hover:bg-surface-3">Sign in</Link>
           <Link to="/register" className={linkButtonClass()}>Get started</Link>
         </div>
@@ -117,6 +119,7 @@ export default function Landing() {
             <Link to="/register" className={linkButtonClass({ size: 'lg' })}>Get help or volunteer</Link>
             <Link to="/login" className={linkButtonClass({ size: 'lg', variant: 'secondary' })}>Sign in</Link>
           </div>
+          <p className="mt-4 max-w-lg text-sm text-muted">Reviewing the project? <Link to="/login" className="font-medium text-primary underline-offset-2 hover:underline">Open the demo sign-in</Link> to try citizen, dispatcher, volunteer and admin views with simulated data.</p>
           <TextSizeTry />
         </div>
         <div className="relative">
@@ -182,7 +185,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <p className="mt-10 rounded-panel border border-medium-edge bg-medium-tint p-4 text-sm text-medium">
+        <div className="mt-10"><ServerStatus /></div>
+        <p className="mt-4 rounded-panel border border-medium-edge bg-medium-tint p-4 text-sm text-medium">
           ResQLink is a hackathon prototype and does not replace official emergency services. In a real emergency, call your local emergency number (112 in India).
         </p>
       </main>

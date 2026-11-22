@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { findHotspots, recencyFactor } from '@/lib/hotspot'
 import { quickRepliesFor } from '@/lib/quickReplies'
 import { safetyGuidance } from '@/lib/safety'
@@ -117,5 +117,35 @@ describe('check-in board', () => {
     expect(dueLabel('2026-01-01T15:00:00Z', now)).toBe('due in 3 h')
     expect(dueLabel('2026-01-01T11:30:00Z', now)).toBe('30 min overdue')
     expect(dueLabel('2025-12-29T12:00:00Z', now)).toBe('3 days overdue')
+  })
+})
+
+import { EMERGENCY_NUMBERS, FIRST_AID } from '@/lib/emergency'
+import { describeServer, pingServer } from '@/lib/serverStatus'
+
+describe('emergency data', () => {
+  it('lists unique, dialable numbers and complete first-aid cards', () => {
+    const nums = EMERGENCY_NUMBERS.map((n) => n.number)
+    expect(new Set(nums).size).toBe(nums.length)
+    expect(nums).toEqual(expect.arrayContaining(['112', '108', '101', '100']))
+    nums.forEach((n) => expect(n).toMatch(/^\d{3,5}$/))
+    FIRST_AID.forEach((c) => { expect(c.title).toBeTruthy(); expect(c.steps.length).toBeGreaterThanOrEqual(3) })
+  })
+})
+
+describe('server status', () => {
+  it('describes each state in plain words', () => {
+    expect(describeServer('waking')).toMatch(/waking up/)
+    expect(describeServer('offline')).toMatch(/internet/)
+  })
+  it('is true only for a healthy UP response and false on errors', async () => {
+    const f = vi.spyOn(globalThis, 'fetch')
+    f.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'UP' }), { status: 200 }))
+    expect(await pingServer(1000, 'http://x')).toBe(true)
+    f.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'DOWN' }), { status: 503 }))
+    expect(await pingServer(1000, 'http://x')).toBe(false)
+    f.mockRejectedValueOnce(new Error('network'))
+    expect(await pingServer(1000, 'http://x')).toBe(false)
+    f.mockRestore()
   })
 })

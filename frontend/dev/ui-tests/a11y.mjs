@@ -8,7 +8,7 @@ const targets = [
   ['citizen@resqlink.demo', ['/citizen', '/citizen/report', '/incidents/1']],
   ['ambulance1@resqlink.demo', ['/responder', '/incidents/5']],
   ['admin@resqlink.demo', ['/admin/users', '/admin/audit', '/admin/activity']],
-  [null, ['/', '/login', '/register']],
+  [null, ['/', '/login', '/register', '/emergency']],
 ]
 let total = 0
 for (const [email, paths] of targets) {

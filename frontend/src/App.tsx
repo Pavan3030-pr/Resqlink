@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import EmergencyHelp from './pages/EmergencyHelp'
 import { AccessibilityMenu } from './components/AccessibilityMenu'
 import { Layout } from './components/Layout'
 import { PageSpinner } from './components/ui/misc'
@@ -50,6 +51,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Public><Landing /></Public>} />
       <Route path="/login" element={<Public><Login /></Public>} />
+      <Route path="/emergency" element={<><EmergencyHelp /><AccessibilityMenu floating /></>} />
       <Route path="/register" element={<Public><Register /></Public>} />
       <Route element={<Guard><Layout /></Guard>}>
         <Route path="/citizen" element={<Guard roles={['CITIZEN']}><CitizenDashboard /></Guard>} />
